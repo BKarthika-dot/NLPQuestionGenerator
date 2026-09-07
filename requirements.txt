@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+
+torch
+transformers
+
+langchain-community
+langchain-text-splitters
+pypdf
+
+numpy
