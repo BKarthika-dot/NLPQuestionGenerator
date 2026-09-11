@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Question Lab</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+        :root { --ink:#332b38; --muted:#8d8190; --cream:#fbf4ec; --lav:#e7dbe5; --purple:#75586f; --rose:#d97e9f; --teal:#7bb8b4; --yellow:#efb94e; --line:#ddd1db; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; background:#f4eee8; color:var(--ink); font-family:'DM Sans',sans-serif; }
+        button, input, select { font:inherit; }
+        .app { width:100vw; min-height:100vh; margin:0; display:grid; grid-template-columns:224px 1fr; background:var(--cream); border-radius:0; overflow:hidden; box-shadow:none; }
+        aside { background:#f0e7e2; padding:30px 20px 24px; display:flex; flex-direction:column; }
+        .brand { font:800 25px 'Plus Jakarta Sans',sans-serif; margin:0 10px 28px; letter-spacing:-1px; }
+        .profile { display:flex; align-items:center; gap:10px; padding:15px 10px 26px; border-bottom:1px solid #ded1d5; }
+        .avatar { width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:#d18f73; color:white; font-size:20px; font-weight:700; }
+        .profile strong { display:block; font-size:13px; } .profile small { color:var(--muted); font-size:11px; }
+        nav { margin-top:20px; display:grid; gap:7px; }
+        nav button { border:0; background:transparent; color:#786b78; text-align:left; padding:12px 13px; border-radius:13px; cursor:pointer; font-weight:600; font-size:13px; display:flex; align-items:center; gap:12px; }
+        nav button.active, nav button:hover { color:var(--ink); background:#dfd0dc; } .nav-icon { width:18px; text-align:center; font-size:17px; }
+        .logout { margin-top:auto; border:0; background:transparent; color:#786b78; padding:12px 13px; text-align:left; font-size:13px; cursor:pointer; }
+        main { padding:34px 40px 36px; min-width:0; }
+        .topbar { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:28px; }
+        h1, h2, h3, p { margin:0; } h1 { font:700 27px 'Plus Jakarta Sans',sans-serif; letter-spacing:-1px; } h2 { font:700 17px 'Plus Jakarta Sans',sans-serif; } h3 { font-size:14px; }
+        .top-actions { display:flex; align-items:center; gap:16px; } .search { width:230px; background:#eee5e2; border:1px solid #d4c6cf; border-radius:22px; padding:11px 16px; color:var(--muted); outline:none; } .bell { font-size:21px; }
+        .layout { display:grid; grid-template-columns:minmax(0, 1fr); gap:18px; } .left { min-width:0; }
+        .intro { color:var(--muted); font-size:13px; margin-top:6px; }
+        .cards { display:grid; grid-template-columns:1fr; gap:16px; margin-top:20px; } .panel { background:var(--lav); border-radius:19px; padding:18px; } .panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; } .export-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }
+        .mini-link { color:var(--purple); font-size:11px; font-weight:700; cursor:pointer; background:none; border:0; }
+        .upload { border:1.5px dashed #b69faf; border-radius:13px; background:#f3e9ed; min-height:118px; display:grid; place-items:center; text-align:center; padding:16px; cursor:pointer; transition:.2s; } .upload:hover, .upload.drag { background:#eadbe4; transform:translateY(-1px); } .upload.processing { cursor:wait; } .upload.done { border-color:#7bb8b4; background:#e4f0ed; } .upload.error-state { border-color:#c77c8a; background:#f6e4e7; }
+        .upload-content { width:100%; animation:upload-state-in .25s ease; } .upload-icon { width:36px; height:36px; margin:auto auto 7px; border-radius:11px; background:var(--purple); color:white; display:grid; place-items:center; font-size:19px; } .upload strong { display:block; font-size:12px; } .upload span { display:block; color:var(--muted); font-size:10px; margin-top:4px; } .upload-status { display:flex; align-items:center; justify-content:center; gap:8px; color:var(--purple); font-size:12px; font-weight:700; } .upload-status.done { color:#438b7e; } .upload-status.error { color:#a34f5f; } .spinner { width:14px; height:14px; border:2px solid #cdbac9; border-top-color:var(--purple); border-radius:50%; animation:spin .7s linear infinite; } .upload-progress { height:5px; max-width:210px; margin:12px auto 0; border-radius:6px; background:#d3c1d0; overflow:hidden; } .upload-progress span { display:block; width:0; height:100%; background:var(--purple); transition:width .3s ease; } @keyframes spin { to { transform:rotate(360deg); } } @keyframes upload-state-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+        input[type=file] { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; } .file-name { color:var(--purple); font-size:11px; font-weight:700; margin-top:8px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; } label { display:block; color:#827581; font-size:10px; font-weight:700; margin-bottom:5px; } .field { width:100%; padding:9px 10px; border:1px solid #d2c0cf; border-radius:9px; background:#f8eff0; color:var(--ink); outline:none; font-size:12px; }
+        .generate { width:100%; margin-top:12px; border:0; border-radius:10px; padding:11px; color:white; background:var(--purple); cursor:pointer; font-weight:700; font-size:12px; } .generate:hover { background:#62465d; } .generate:disabled { opacity:.65; cursor:wait; }
+        .events { display:grid; gap:9px; } .event { display:flex; align-items:center; gap:10px; background:#f2e8eb; border:1px solid #d8c7d2; padding:9px; border-radius:12px; font-size:11px; } .event-badge { width:31px; height:31px; border-radius:10px; background:#b3ceca; display:grid; place-items:center; } .event small { display:block; color:var(--muted); font-size:9px; margin-top:2px; }
+        .projects { margin-top:17px; } .project-list { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; } .project { height:88px; border-radius:13px; padding:12px; display:flex; align-items:flex-end; color:white; font-size:12px; font-weight:700; background:linear-gradient(135deg,#a17766,#e4b168); cursor:pointer; overflow:hidden; } .project:nth-child(even) { background:linear-gradient(135deg,#69848a,#d09273); } .project.empty { background:#d7c5d2; color:var(--purple); cursor:default; }
+        .material-detail { display:none; margin-top:17px; } .material-detail.show { display:block; } .material-detail-layout { display:grid; grid-template-columns:minmax(180px, .8fr) minmax(0, 1.2fr); gap:16px; } .pdf-frame { width:100%; height:310px; border:0; border-radius:12px; background:#f5e9eb; } .material-questions { display:grid; gap:8px; max-height:310px; overflow:auto; } .material-questions .question { background:#f8eff0; } .close-detail { color:var(--purple); font-size:11px; font-weight:700; cursor:pointer; background:none; border:0; }
+        .results { display:none; margin-top:17px; } .results.show { display:block; } .result-grid { display:grid; gap:9px; } .question { background:#f8eff0; border-radius:12px; padding:13px 15px; border:1px solid #e0d0d8; } .question strong { display:block; font-size:12px; margin-bottom:6px; } .question p { color:#766b75; font-size:11px; line-height:1.45; } .tag { display:inline-block; margin-top:8px; padding:4px 7px; border-radius:8px; background:#dfcad9; color:var(--purple); font-size:9px; font-weight:700; }
+        .status { display:none; }
+        @media (max-width:900px) { .app { width:100vw; margin:0; grid-template-columns:76px 1fr; min-height:100vh; } aside { padding:22px 10px; align-items:center; } .brand { font-size:0; margin:0 0 20px; } .brand:after { content:'Q'; font-size:25px; } .profile { padding:10px 0 20px; border:0; } .profile div:last-child, nav button span:not(.nav-icon), .logout { display:none; } nav { margin-top:10px; } nav button { padding:12px; } main { padding:25px 20px; } .layout { grid-template-columns:1fr; } .stats { grid-template-columns:repeat(3,1fr); } .stat { min-height:125px; padding:12px 6px; } .ring { width:62px; height:62px; margin-top:9px; } .ring:after { width:49px; height:49px; } }
+        @media (max-width:620px) { .topbar { align-items:flex-start; } .top-actions { gap:8px; } .search { width:110px; } .cards, .material-detail-layout { grid-template-columns:1fr; } .project-list { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside>
+            <div class="brand">Question Lab</div>
+            <div class="profile"><div class="avatar">K</div><div><strong>Welcome back</strong><small>Question creator</small></div></div>
+            <nav>
+                <button id="dashboard-nav" class="active" type="button"><span class="nav-icon">▦</span><span>Dashboard</span></button>
+                <button id="materials-nav" type="button" onclick="window.location.href='/my-materials'"><span class="nav-icon">⌂</span><span>My materials</span></button>
+                <button onclick="document.getElementById('results').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▤</span><span>My questions</span></button>
+                <button type="button" onclick="window.location.href='/quiz'"><span class="nav-icon">✓</span><span>Quiz Mode</span></button>
+                <button type="button" onclick="window.location.href='/evaluate'"><span class="nav-icon">≋</span><span>Answer Evaluation</span></button>
+            </nav>
+            <button class="logout">↪ &nbsp; Log out</button>
+        </aside>
+                <main>
+                    <div id="dashboard-view">
+            <div class="topbar"><div><h1>HELLO, QUESTION MAKER!</h1><p class="intro">Turn your study material into thoughtful questions.</p></div><div class="top-actions"><input class="search" placeholder="⌕  Search" /><span class="bell">♟</span><span>⋮</span></div></div>
+            <div class="layout">
+                <section class="left">
+                    <div class="cards">
+                        <div class="panel" id="upload"><div class="panel-head"><h2>New question set</h2></div>
+                            <label class="upload" id="dropzone" for="file"><input id="file" type="file" accept="application/pdf,.pdf" /><div id="upload-content" class="upload-content"><div class="upload-icon">↑</div><strong>Drop your PDF here</strong><span>or click to browse · PDF only</span></div></label>
+                            <div id="file-name" class="file-name">No material selected</div>
+                            <div class="field-row"><div><label for="topic">TOPIC (OPTIONAL)</label><input id="topic" class="field" placeholder="e.g. biology" /></div><div><label for="difficulty">DIFFICULTY</label><select id="difficulty" class="field"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option></select></div></div>
+                            <div class="field-row"><div><label for="count">QUESTIONS</label><input id="count" class="field" type="number" min="1" max="50" value="5" /></div><div></div></div>
+                            <button id="generate" class="generate">Generate questions →</button>
+                        </div>
+                    </div>
+                    <div id="results" class="panel results"><div class="panel-head"><h2>Generated questions</h2><div class="export-actions"><button id="download" class="mini-link">Download TXT ↓</button><button id="download-json" class="mini-link">JSON ↓</button><button id="download-pdf" class="mini-link">PDF ↓</button></div></div><div id="result-meta" class="intro"></div><div id="result-grid" class="result-grid"></div></div>
+                    <div id="material-detail" class="panel material-detail"><div class="panel-head"><h2 id="detail-title">Material</h2><button id="close-detail" class="close-detail">Close ×</button></div><div class="material-detail-layout"><iframe id="pdf-frame" class="pdf-frame" title="PDF preview"></iframe><div id="material-questions" class="material-questions"></div></div></div>
+                    <div class="panel projects"><div class="panel-head"><h2>My recent materials</h2><button id="refresh-materials" class="mini-link">Refresh ↻</button></div><div id="project-list" class="project-list"><div class="project empty">Loading materials...</div></div></div>
+                </section>
+                        </div>
+                    </div>
+        </main>
+    </div>
+    <script>
+        const fileInput = document.getElementById('file');
+        const dropzone = document.getElementById('dropzone');
+        const fileName = document.getElementById('file-name');
+        const results = document.getElementById('results');
+        const resultGrid = document.getElementById('result-grid');
+        const resultMeta = document.getElementById('result-meta');
+        const projectList = document.getElementById('project-list');
+        const materialDetail = document.getElementById('material-detail');
+        const materialQuestions = document.getElementById('material-questions');
+        const uploadContent = document.getElementById('upload-content');
+        let latestData = null;
+        let materials = [];
+        let selectedFile = null;
+        let activeJobId = null;
+        const stageLabels = { uploaded:'Uploading', cleaning:'Cleaning', chunking:'Chunking', embedding:'Embedding & storing', generating:'Generating questions', done:'Complete' };
+        function debug(functionName, message, details = {}) { console.debug(`[QuestionLab] ${functionName}: ${message}`, details); }
+        debug('startup', 'frontend loaded');
+        loadMaterials();
+        fileInput.addEventListener('change', () => { debug('file.change', 'input changed', { files: fileInput.files.length }); selectFile(fileInput.files[0]); });
+        ['dragenter','dragover'].forEach(event => dropzone.addEventListener(event, e => { e.preventDefault(); debug(event, 'drag event'); dropzone.classList.add('drag'); }));
+        ['dragleave','drop'].forEach(event => dropzone.addEventListener(event, e => { e.preventDefault(); debug(event, 'drag event'); dropzone.classList.remove('drag'); }));
+        dropzone.addEventListener('drop', e => { debug('dropzone.drop', 'files received', { files: e.dataTransfer.files.length }); selectFile(e.dataTransfer.files[0]); });
+        function selectFile(file) { debug('selectFile', 'called', file ? { name: file.name, type: file.type, size: file.size } : { file: null }); if (!file) return; if (!file.name.toLowerCase().endsWith('.pdf')) { selectedFile = null; fileInput.value = ''; fileName.textContent = 'Please choose a PDF file'; showStatus('Only PDF files are allowed.', true); debug('selectFile', 'rejected non-PDF'); return; } selectedFile = file; fileName.textContent = file.name; startUpload(file); }
+        document.getElementById('generate').addEventListener('click', async () => {
+            debug('generate.click', 'started');
+            if (!selectedFile) return showStatus('Please choose a PDF first.', true);
+            if (!activeJobId) startUpload(selectedFile);
+        });
+        function showStatus(message, error = false, progress = null) { debug('showStatus', message, { error, progress }); dropzone.classList.toggle('error-state', error); dropzone.classList.toggle('processing', !error); uploadContent.innerHTML = `<div class="upload-status ${error ? 'error' : ''}">${error ? '×' : '<span class="spinner"></span>'}<span>${escapeHtml(message)}</span></div>${progress === null ? '' : `<div class="upload-progress"><span style="width:${progress}%"></span></div>`}`; }
+        function showDone() { dropzone.classList.remove('processing', 'error-state'); dropzone.classList.add('done'); uploadContent.innerHTML = '<div class="upload-status done">✓<span>Questions ready</span></div>'; }
+        function resetDropzone() { dropzone.classList.remove('processing', 'done', 'error-state'); uploadContent.innerHTML = '<div class="upload-icon">↑</div><strong>Drop your PDF here</strong><span>or click to browse · PDF only</span>'; }
+        async function startUpload(file) { const button = document.getElementById('generate'); button.disabled = true; button.textContent = 'Processing...'; activeJobId = null; const form = new FormData(); form.append('file', file); form.append('topic', document.getElementById('topic').value); form.append('difficulty', document.getElementById('difficulty').value); form.append('num_questions', document.getElementById('count').value); showStatus(`Uploading ${file.name}...`, false, 0); try { const payload = await uploadWithProgress(form, file.name); activeJobId = payload.job_id; showStatus('Uploading...', false, 10); pollJob(activeJobId); } catch (error) { console.error('[QuestionLab] upload failed', error); showStatus(error.message, true); button.disabled = false; button.textContent = 'Generate questions →'; } }
+        function uploadWithProgress(form, filename) { return new Promise((resolve, reject) => { const request = new XMLHttpRequest(); request.open('POST', '/upload'); request.upload.addEventListener('progress', event => { if (!event.lengthComputable) return; const percent = Math.round((event.loaded / event.total) * 10); showStatus('Uploading...', false, percent); }); request.addEventListener('load', () => { debug('uploadWithProgress', 'response received', { status: request.status }); let payload; try { payload = JSON.parse(request.responseText); } catch (error) { reject(new Error('The server returned an invalid response.')); return; } if (request.status < 200 || request.status >= 300) { reject(new Error(payload.detail || 'Upload failed.')); return; } resolve(payload); }); request.addEventListener('error', () => reject(new Error('Network error while uploading the PDF.'))); request.addEventListener('abort', () => reject(new Error('PDF upload was cancelled.'))); request.send(form); }); }
+        async function pollJob(jobId) { try { const response = await fetch(`/jobs/${encodeURIComponent(jobId)}/status`); const job = await response.json(); if (!response.ok) throw new Error(job.detail || 'Status request failed.'); if (job.status === 'failed') showStatus(job.error, true); else if (job.status !== 'done') showStatus(`${stageLabels[job.stage] || job.stage}...`, false, job.progress || 0); if (job.status === 'done') { const resultResponse = await fetch(`/jobs/${encodeURIComponent(jobId)}/result`); const resultPayload = await resultResponse.json(); if (!resultResponse.ok) throw new Error(resultPayload.detail || 'Result request failed.'); latestData = resultPayload.data; renderResults(latestData); await loadMaterials(); showDone(); document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; setTimeout(resetDropzone, 1800); return; } if (job.status !== 'failed') setTimeout(() => pollJob(jobId), 1500); else { document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; } } catch (error) { console.error('[QuestionLab] status polling failed', error); showStatus(error.message, true); document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; } }
+        function renderResults(data) { debug('renderResults', 'called', { generated: data.generated_questions, questions: data.questions.length }); resultGrid.innerHTML = (data.questions || []).map((item, index) => `<article class="question"><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer)}</p><span class="tag">${escapeHtml(item.difficulty)} · ${escapeHtml(item.type)}</span></article>`).join('') || '<p class="intro">No questions were generated.</p>'; resultMeta.textContent = `${data.generated_questions} questions · ${data.pages_used.length} pages used · ${data.semantic_chunks_created} semantic chunks`; results.classList.add('show'); results.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+        function escapeHtml(value) { debug('escapeHtml', 'called'); return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character])); }
+        function downloadBlob(blob, filename) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); }
+        document.getElementById('download').addEventListener('click', () => { debug('download.click', 'started'); if (!latestData) return; const text = latestData.questions.map((item, index) => `${index + 1}. ${item.question}\nAnswer: ${item.answer}`).join('\n\n'); downloadBlob(new Blob([text], {type:'text/plain'}), 'question-set.txt'); });
+        document.getElementById('download-json').addEventListener('click', () => { if (!latestData) return; downloadBlob(new Blob([JSON.stringify(latestData.questions, null, 2)], {type:'application/json'}), 'question-set.json'); });
+        document.getElementById('download-pdf').addEventListener('click', async () => { if (!latestData || !latestData.material_id) return; const response = await fetch('/export/pdf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({material_id:latestData.material_id}) }); if (!response.ok) return showStatus('PDF export failed.', true); downloadBlob(await response.blob(), 'question-paper.pdf'); });
+        async function loadMaterials() { debug('loadMaterials', 'started'); try { const response = await fetch('/materials'); debug('loadMaterials', 'response received', { status: response.status, ok: response.ok }); if (!response.ok) return; const payload = await response.json(); materials = payload.materials || []; debug('loadMaterials', 'rendering materials', { count: materials.length }); projectList.innerHTML = materials.length ? materials.slice(0, 6).map((item, index) => `<button class="project" data-id="${escapeHtml(item.id)}" style="background:${index % 2 ? 'linear-gradient(135deg,#69848a,#d09273)' : 'linear-gradient(135deg,#a17766,#e4b168)'}"><span>${escapeHtml(item.filename)}</span></button>`).join('') : '<div class="project empty">No generated materials yet</div>'; projectList.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => openMaterial(button.dataset.id))); } catch (error) { console.error('[QuestionLab] loadMaterials: failed', error); } }
+        function openMaterial(materialId) { debug('openMaterial', 'opening materials page', { materialId }); window.location.href = `/my-materials#${encodeURIComponent(materialId)}`; }
+        document.getElementById('close-detail').addEventListener('click', () => { debug('close-detail.click', 'closing'); materialDetail.classList.remove('show'); document.getElementById('pdf-frame').src = ''; });
+        document.getElementById('refresh-materials').addEventListener('click', () => { debug('refresh-materials.click', 'refreshing'); loadMaterials(); });
+        document.querySelector('.search').addEventListener('input', event => { debug('search.input', event.target.value); const query = event.target.value.trim().toLowerCase(); projectList.querySelectorAll('[data-id]').forEach(button => { button.hidden = query && !button.textContent.toLowerCase().includes(query); }); });
+    </script>
+</body>
+</html>

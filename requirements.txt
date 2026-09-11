@@ -10,3 +10,4 @@ langchain-text-splitters
 pypdf
 
 numpy
+reportlab
