@@ -3,15 +3,8 @@
 #
 # PDF -> page-aware extraction -> cleaning -> semantic chunking
 # -> embeddings -> topic retrieval -> question generation
-# -> question-specific retrieval -> short-answer generation
-# -> final question
-#
-# NOTE: MCQ/option generation was removed. Generating four
-# plausible distractors per question meant an extra heavy
-# seq2seq call, plus an embedding-based dedup pass, for every
-# single question -- by far the most CPU-expensive part of the
-# pipeline. This build only ever produces short-answer Q&A
-# pairs, which need exactly one generation call per question.
+# -> [RAG] question-specific retrieval -> long-form answer generation
+# -> final question + system-wide RAG evaluation score
 # ============================================================
 
 import re
@@ -44,20 +37,41 @@ MAX_SENTENCES_PER_CHUNK = 6
 
 # Retrieval
 TOPIC_TOP_K = 6
-QUESTION_TOP_K = 4
+
+# Chunks retrieved specifically to answer a single question (this is the
+# dedicated RAG step: question -> retrieval -> generation). Larger than the
+# old QUESTION_TOP_K=4 so a long-form answer actually has enough grounding
+# material to draw a complete, multi-sentence answer from.
+ANSWER_TOP_K = 6
 
 # Generation
-# NOTE: flan-t5 is fine-tuned mostly on <=512 token inputs. 768 was pushing
-# the model outside its trained context and degrading output quality.
+# NOTE: flan-t5 is fine-tuned mostly on <=512 token inputs.
 MAX_INPUT_TOKENS = 512
 MAX_QUESTION_TOKENS = 64
-MAX_ANSWER_TOKENS = 48
 
-# How many times to retry answer generation for the SAME question before
-# giving up on that question and generating a fresh one instead.
+# Long-form answers need real room to breathe. 48 tokens was hard-capping
+# every answer to a single short clause regardless of how much the question
+# actually required to answer correctly.
+MAX_ANSWER_TOKENS = 220
+MIN_ANSWER_TOKENS = 24
+
+# How many times to retry answer generation for the SAME question (with the
+# SAME retrieved context) before giving up on that question and generating
+# a fresh one instead.
 ANSWER_RETRIES_PER_QUESTION = 2
 
-QUESTION_TYPE = "Short Answer"
+# How many chunks either side of a seed chunk to pull in as local context
+# when generating a question, so the model has enough surrounding text
+# without dragging in the whole document.
+QUESTION_CONTEXT_WINDOW = 1
+
+# Two questions are treated as near-duplicates (and the second rejected) if
+# their embedding cosine similarity is at or above this. Catches paraphrases
+# like "What is the basic layer...?" vs "...called?" vs "...structure?"
+# that don't match as exact strings but are the same question.
+QUESTION_DEDUP_THRESHOLD = 0.85
+
+QUESTION_TYPE = "Long Answer"
 DIFFICULTIES = {"easy", "medium", "hard"}
 
 print(f"[INFO] Device: {DEVICE}")
@@ -340,6 +354,9 @@ class QuestionGenerator:
         prompt: str,
         max_new_tokens: int,
         deterministic: bool = False,
+        min_new_tokens: Optional[int] = None,
+        num_beams: int = 4,
+        length_penalty: float = 1.0,
     ) -> str:
         inputs = self.tokenizer(
             prompt, return_tensors="pt", truncation=True, max_length=MAX_INPUT_TOKENS
@@ -349,11 +366,15 @@ class QuestionGenerator:
         gen_kwargs = dict(max_new_tokens=max_new_tokens, repetition_penalty=1.15, no_repeat_ngram_size=3)
 
         if deterministic:
-            # Structured, single-fact answers need reliable, literal
-            # extraction rather than creative variation. Beam search is
-            # far more consistent than sampling for this on a small
-            # (250M param) model.
-            gen_kwargs.update(do_sample=False, num_beams=2)
+            # Beam search is far more consistent than sampling for grounded
+            # extraction on a small (250M param) model. min_new_tokens stops
+            # the model from stopping after a single short clause -- a
+            # common flan-t5 failure mode -- and length_penalty > 1 biases
+            # beam search toward the longer, more complete candidate instead
+            # of the shortest one that satisfies the beams.
+            gen_kwargs.update(do_sample=False, num_beams=num_beams, length_penalty=length_penalty)
+            if min_new_tokens:
+                gen_kwargs["min_new_tokens"] = min_new_tokens
         else:
             # Keep light sampling only for open-ended question phrasing,
             # where some variety is desirable, but tone it down from 0.7.
@@ -366,11 +387,12 @@ class QuestionGenerator:
 
     # ------------------------------------------------------
     def generate_question(self, context: str, difficulty: str) -> str:
-        prompt = f"""Generate ONE short-answer question at {difficulty} difficulty.
+        prompt = f"""Generate ONE question at {difficulty} difficulty that requires a full, explanatory answer (not a one-word answer).
 
 Use only the information in the reference text below. The question must:
 - test an important concept from the text
-- be answerable in a short phrase or sentence using only the reference text
+- require explaining or describing something, not just naming a fact
+- be answerable using only the reference text
 - not contain the answer itself
 
 Reference text:
@@ -381,15 +403,32 @@ Question:"""
 
     # ------------------------------------------------------
     def generate_answer(self, question: str, context: str) -> str:
-        prompt = f"""Answer the question using only the reference text. Give the shortest correct answer possible, as a short phrase or sentence.
+        # This is the dedicated RAG generation step: it only ever sees the
+        # question plus the passages retrieved specifically for it, and is
+        # explicitly instructed to write a complete, multi-sentence answer
+        # rather than a bare fact fragment.
+        prompt = f"""Answer the question fully and accurately using ONLY the reference text below.
 
 Question: {question}
 
 Reference text:
 {context}
 
+Instructions:
+- Write a complete answer of 2 to 5 sentences.
+- Explain the reasoning or supporting details from the reference text, not just a single word or phrase.
+- Do not add information that is not in the reference text.
+- Do not repeat the question in your answer.
+
 Answer:"""
-        return self.generate_text(prompt, MAX_ANSWER_TOKENS, deterministic=True)
+        return self.generate_text(
+            prompt,
+            MAX_ANSWER_TOKENS,
+            deterministic=True,
+            min_new_tokens=MIN_ANSWER_TOKENS,
+            num_beams=4,
+            length_penalty=1.4,
+        )
 
 
 # ============================================================
@@ -444,9 +483,10 @@ def clean_answer(raw: str) -> str:
 
 def is_degenerate_answer(answer: str, question: str) -> bool:
     """
-    Reject answers that are empty, just repeat the question back, or are
-    implausibly long for a "short answer" (a sign generation looped or
-    copied the whole reference text instead of extracting a fact).
+    Reject answers that are empty, just repeat the question back, are too
+    short to be a real explanatory answer, or are implausibly long (a sign
+    generation looped or dumped the whole reference text verbatim instead
+    of composing an answer).
     """
     if not answer:
         return True
@@ -457,14 +497,101 @@ def is_degenerate_answer(answer: str, question: str) -> bool:
     if normalized_answer == normalized_question:
         return True
 
-    if len(answer.split()) > 40:
+    word_count = len(answer.split())
+
+    # Too short to be the multi-sentence explanatory answer we asked for.
+    if word_count < 6:
+        return True
+
+    # Runaway generation / context dump rather than a composed answer.
+    if word_count > 180:
         return True
 
     return False
 
 
 # ============================================================
-# 12. PIPELINE
+# 12. SYSTEM-WIDE RAG EVALUATION
+# ============================================================
+
+def evaluate_rag(qa_records: List[Dict[str, Any]], embedder: SemanticEmbedder) -> Dict[str, Any]:
+    """
+    Reference-free RAG evaluation over the WHOLE generated set, not just a
+    single question. There's no ground-truth answer key to compare against,
+    so this scores each question/answer/context triple using embedding
+    cosine similarity as a proxy for three standard RAG quality axes:
+
+    - context_relevance:  question <-> retrieved context
+                           (did retrieval fetch material relevant to the
+                           question at all?)
+    - faithfulness:       answer <-> retrieved context
+                           (is the answer actually grounded in what was
+                           retrieved, rather than drifting from it?)
+    - answer_relevance:   answer <-> question
+                           (does the answer actually address the question
+                           that was asked?)
+
+    These are heuristic proxies (cosine similarity is not the same as a
+    factual entailment check), but computed consistently across every
+    question they give a single comparable system-level score, which is
+    what's useful for judging "is this PDF's generated set good" rather
+    than eyeballing each question individually.
+    """
+    if not qa_records:
+        return {
+            "per_question": [],
+            "overall": {
+                "context_relevance": 0.0,
+                "faithfulness": 0.0,
+                "answer_relevance": 0.0,
+                "rag_score": 0.0,
+            },
+            "note": "No questions were generated, so no evaluation could be computed.",
+        }
+
+    questions = [record["question"] for record in qa_records]
+    answers = [record["answer"] for record in qa_records]
+    contexts = [record["context"] for record in qa_records]
+
+    # Embeddings are L2-normalized (see SemanticEmbedder.encode), so the
+    # dot product below is already cosine similarity.
+    question_embeddings = embedder.encode(questions)
+    answer_embeddings = embedder.encode(answers)
+    context_embeddings = embedder.encode(contexts)
+
+    context_relevance = torch.sum(question_embeddings * context_embeddings, dim=1)
+    faithfulness = torch.sum(answer_embeddings * context_embeddings, dim=1)
+    answer_relevance = torch.sum(answer_embeddings * question_embeddings, dim=1)
+
+    per_question = []
+    for i, record in enumerate(qa_records):
+        per_question.append(
+            {
+                "question": record["question"],
+                "context_relevance": round(float(context_relevance[i]), 4),
+                "faithfulness": round(float(faithfulness[i]), 4),
+                "answer_relevance": round(float(answer_relevance[i]), 4),
+            }
+        )
+
+    overall_context_relevance = float(context_relevance.mean())
+    overall_faithfulness = float(faithfulness.mean())
+    overall_answer_relevance = float(answer_relevance.mean())
+    overall_rag_score = (overall_context_relevance + overall_faithfulness + overall_answer_relevance) / 3
+
+    return {
+        "per_question": per_question,
+        "overall": {
+            "context_relevance": round(overall_context_relevance, 4),
+            "faithfulness": round(overall_faithfulness, 4),
+            "answer_relevance": round(overall_answer_relevance, 4),
+            "rag_score": round(overall_rag_score, 4),
+        },
+    }
+
+
+# ============================================================
+# 13. PIPELINE
 # ============================================================
 
 class QuestionGeneratorPipeline:
@@ -500,15 +627,77 @@ class QuestionGeneratorPipeline:
             for item in results
         ]
 
-    def _build_short_answer(self, question: str, question_context: str) -> Optional[str]:
+    def _build_seed_pool(
+        self, retriever: "ContextRetriever", chunks: List[Document], topic: Optional[str], num_questions: int
+    ) -> List[Document]:
         """
-        Retries answer generation for the SAME question (using the SAME
-        retrieved context) a few times before giving up on it, rather than
-        discarding a perfectly good question after a single degenerate
-        generation.
+        Produces the ordered list of "seed" chunks that question generation
+        rotates through -- one different seed per generation attempt -- so
+        that questions are actually drawn from different parts of the
+        document instead of the same handful of chunks every time.
+
+        Previously every question (topic or not) was generated from one
+        fixed block of context: with a topic, the same top-K retrieval
+        result reused for every attempt; without a topic, literally
+        chunks[:TOPIC_TOP_K] -- the first few chunks of page 1 -- for the
+        entire run. Both guarantee near-duplicate questions once you ask
+        for more than a couple.
         """
+        pool_size = min(len(chunks), max(TOPIC_TOP_K, num_questions * 3))
+
+        if topic:
+            topic_query = f"Important educational concepts about {topic}"
+            results = retriever.retrieve(topic_query, pool_size)
+            # Keep retrieval-relevance order but topic-relevant material can
+            # still cluster (many top hits from the same paragraph) -- a
+            # light interleave by document position spreads them out while
+            # still respecting "relevant to the topic".
+            results = sorted(results, key=lambda item: item["chunk"].metadata.get("chunk_id", 0))
+            seeds = [item["chunk"] for item in results]
+        else:
+            # No topic: spread seeds evenly across the WHOLE document
+            # instead of only ever using the first few chunks.
+            if pool_size >= len(chunks):
+                seeds = list(chunks)
+            else:
+                stride = len(chunks) / pool_size
+                seeds = [chunks[int(i * stride)] for i in range(pool_size)]
+
+        return seeds or list(chunks[:1])
+
+    def _seed_context(self, chunks: List[Document], seed_chunk: Document) -> str:
+        """Local context window around a seed chunk (by chunk_id, which is
+        the same as its index in `chunks` since ids are assigned in order)."""
+        seed_id = seed_chunk.metadata.get("chunk_id", 0)
+        start = max(0, seed_id - QUESTION_CONTEXT_WINDOW)
+        end = min(len(chunks), seed_id + QUESTION_CONTEXT_WINDOW + 1)
+        return "\n\n".join(c.page_content.strip() for c in chunks[start:end])
+
+
+    def _generate_rag_answer(self, retriever: "ContextRetriever", question: str) -> Optional[Dict[str, Any]]:
+        """
+        The dedicated answer RAG step. Takes the already-generated question
+        as a fresh query, retrieves the passages most relevant to THAT
+        question specifically (independent of whatever broader context the
+        question itself was generated from), and generates the answer
+        grounded only in that retrieved context.
+
+        This is a distinct retrieval + generation pass, not a reuse of the
+        question-generation context -- retrieval and generation are two
+        separate stages here, which is what makes it an actual RAG pipeline
+        rather than "generate everything from one blob of context".
+
+        Retries generation a few times against the SAME retrieved context
+        before giving up on the question entirely.
+        """
+        results = retriever.retrieve(question, ANSWER_TOP_K)
+        if not results:
+            return None
+
+        context = retriever.build_context(results)
+
         for attempt in range(1, ANSWER_RETRIES_PER_QUESTION + 1):
-            raw_answer = self.generator.generate_answer(question, question_context)
+            raw_answer = self.generator.generate_answer(question, context)
             print(f"[DEBUG] Raw answer (attempt {attempt}): {raw_answer}")
 
             answer = clean_answer(raw_answer)
@@ -516,7 +705,11 @@ class QuestionGeneratorPipeline:
                 print("[INFO] Degenerate answer. Retrying.")
                 continue
 
-            return answer
+            return {
+                "answer": answer,
+                "context": context,
+                "source": self._source_list(results),
+            }
 
         return None
 
@@ -546,12 +739,16 @@ class QuestionGeneratorPipeline:
         if not topic_results:
             raise ValueError("No relevant context was found.")
 
-        topic_context = retriever.build_context(topic_results)
+        # Seeds rotate through different parts of the document so each
+        # generation attempt starts from different material, instead of
+        # every question being generated from the same fixed context block.
+        seed_pool = self._build_seed_pool(retriever, chunks, topic, num_questions)
 
         final_questions = []
         generated_question_keys = set()
+        accepted_question_embeddings: List[torch.Tensor] = []
         attempts = 0
-        # Retries now happen per-question inside _build_short_answer, so
+        # Retries now happen per-question inside _generate_rag_answer, so
         # the outer attempt budget can stay modest -- it just needs enough
         # room to replace a question that never produced a usable answer.
         max_attempts = num_questions * 6
@@ -560,7 +757,13 @@ class QuestionGeneratorPipeline:
             attempts += 1
             print(f"\n[INFO] Generating question {len(final_questions) + 1}/{num_questions} | attempt {attempts}")
 
-            raw_question = self.generator.generate_question(topic_context, difficulty)
+            # Every attempt (not just every successful question) advances to
+            # the next seed, so a rejected/duplicate attempt also moves on
+            # to different material rather than re-rolling the same context.
+            seed_chunk = seed_pool[(attempts - 1) % len(seed_pool)]
+            generation_context = self._seed_context(chunks, seed_chunk)
+
+            raw_question = self.generator.generate_question(generation_context, difficulty)
             print(f"[DEBUG] Raw question:\n{raw_question}")
 
             question = clean_question(raw_question)
@@ -570,33 +773,40 @@ class QuestionGeneratorPipeline:
 
             question_key = re.sub(r"\W+", " ", question.lower()).strip()
             if question_key in generated_question_keys:
-                print("[WARN] Duplicate question.")
+                print("[WARN] Duplicate question (exact match).")
                 continue
+
+            # Exact-string dedup misses paraphrases ("...basic layer?" vs
+            # "...basic layer called?" vs "...basic structure?"), which is
+            # exactly what was slipping through before. Catch those via
+            # embedding similarity against every question accepted so far.
+            question_embedding = self.embedder.encode([question])[0]
+            if accepted_question_embeddings:
+                sims = torch.stack(accepted_question_embeddings) @ question_embedding
+                if float(sims.max()) >= QUESTION_DEDUP_THRESHOLD:
+                    print(f"[WARN] Duplicate question (semantic match, sim={float(sims.max()):.4f}).")
+                    continue
+
             generated_question_keys.add(question_key)
 
-            # Retrieval happens fresh, per-question, against the specific
-            # question text -- not reused from the broader topic context --
-            # so the answer generation step below is grounded in the chunks
-            # most relevant to THIS question rather than the whole topic.
-            question_results = retriever.retrieve(question, QUESTION_TOP_K)
-            if not question_results:
-                print("[WARN] No context for question.")
-                continue
-
-            question_context = retriever.build_context(question_results)
-
-            answer = self._build_short_answer(question, question_context)
-            if answer is None:
+            # Dedicated RAG step: the question feeds a fresh retrieval
+            # (independent of the seed context it was generated from), and
+            # the answer is generated only from what that retrieval returns.
+            rag_result = self._generate_rag_answer(retriever, question)
+            if rag_result is None:
                 print("[WARN] Could not produce a valid answer for this question.")
                 continue
+
+            accepted_question_embeddings.append(question_embedding)
 
             final_questions.append(
                 {
                     "question": question,
-                    "answer": answer,
+                    "answer": rag_result["answer"],
                     "type": QUESTION_TYPE,
                     "difficulty": difficulty,
-                    "source": self._source_list(question_results),
+                    "context": rag_result["context"],
+                    "source": rag_result["source"],
                 }
             )
 
@@ -607,6 +817,14 @@ class QuestionGeneratorPipeline:
                 if item["chunk"].metadata.get("page") is not None
             }
         )
+
+        evaluation = evaluate_rag(final_questions, self.embedder)
+
+        print("\n[INFO] RAG evaluation (system-wide):")
+        print(f"       context_relevance : {evaluation['overall']['context_relevance']}")
+        print(f"       faithfulness      : {evaluation['overall']['faithfulness']}")
+        print(f"       answer_relevance  : {evaluation['overall']['answer_relevance']}")
+        print(f"       rag_score         : {evaluation['overall']['rag_score']}")
 
         return {
             "questions": final_questions,
@@ -619,6 +837,7 @@ class QuestionGeneratorPipeline:
             "semantic_chunks_created": len(chunks),
             "retrieval_chunks_used": len(topic_results),
             "retrieval": self._source_list(topic_results),
+            "evaluation": evaluation,
         }
 
 
