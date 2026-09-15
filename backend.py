@@ -216,7 +216,7 @@ class SemanticChunker:
             **metadata,
             "section": detect_section(text),
             "chunk_id": None,
-            "chunk_index_on_page": chunk_index,
+            "chunk_index_on_page": chuvnk_index,
             "semantic_chunk": True,
             "sentence_count": len(sentences),
             "chunk_length": len(text),

@@ -1690,5 +1690,447 @@
         }
       ]
     }
+  },
+  {
+    "id": "96d0d1a4f78143a68b2d6adb3fbff0ff",
+    "filename": "Part8_AI_Engineering_Handbook.pdf",
+    "stored_filename": "05efc71ba5a44bdeb35de232d67f3547_Part8_AI_Engineering_Handbook.pdf",
+    "topic": "General",
+    "difficulty": "medium",
+    "created_at": "2026-09-11T13:21:20",
+    "data": {
+      "questions": [
+        {
+          "question": "What is the most common type of LLM?",
+          "answer": "open-weight",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 800,
+              "similarity": 0.4704
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 828,
+              "similarity": 0.4623
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.4085
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 827,
+              "similarity": 0.4025
+            }
+          ]
+        },
+        {
+          "question": "What is a LLM?",
+          "answer": "A Large Language Model (LLM) is a neural network trained on massive text corpora to predict the next token in a sequence",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 800,
+              "similarity": 0.6782
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.6297
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 828,
+              "similarity": 0.5123
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 827,
+              "similarity": 0.4789
+            }
+          ]
+        },
+        {
+          "question": "What is an LLM?",
+          "answer": "A Large Language Model (LLM) is a neural network trained on massive text corpora to predict the next token in a sequence",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 800,
+              "similarity": 0.6807
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.6309
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 828,
+              "similarity": 0.51
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 827,
+              "similarity": 0.4771
+            }
+          ]
+        },
+        {
+          "question": "What is the LLM?",
+          "answer": "A Large Language Model (LLM) is a neural network trained on massive text corpora to predict the next token in a sequence",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 800,
+              "similarity": 0.6661
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.6343
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 828,
+              "similarity": 0.5336
+            },
+            {
+              "page": 5,
+              "section": "General",
+              "chunk_id": 595,
+              "similarity": 0.5061
+            }
+          ]
+        },
+        {
+          "question": "What is the LLM in AI Engineering Handbook?",
+          "answer": "A Large Language Model",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.8478
+            },
+            {
+              "page": 8,
+              "section": "General",
+              "chunk_id": 806,
+              "similarity": 0.7356
+            },
+            {
+              "page": 100,
+              "section": "General",
+              "chunk_id": 1175,
+              "similarity": 0.7009
+            },
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 800,
+              "similarity": 0.6808
+            }
+          ]
+        }
+      ],
+      "type": "Short Answer",
+      "difficulty": "medium",
+      "requested_questions": 5,
+      "generated_questions": 5,
+      "topic": "",
+      "pages_used": [
+        1,
+        2
+      ],
+      "semantic_chunks_created": 1444,
+      "retrieval_chunks_used": 6,
+      "retrieval": [
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 0,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 1,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 2,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 3,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 4,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 5,
+          "similarity": 1.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "7ed915711341464b9815795f540067f7",
+    "filename": "MedGuard_ An Equity-First, Offline-Resilient Pharma Cold-Chain Platform (1).pdf",
+    "stored_filename": "72ee80d37fce48a6a5e5fbfb1bdce913_MedGuard_ An Equity-First, Offline-Resilient Pharma Cold-Chain Platform (1).pdf",
+    "topic": "General",
+    "difficulty": "medium",
+    "created_at": "2026-09-11T13:23:16",
+    "data": {
+      "questions": [
+        {
+          "question": "What is the difference between \"we have 20 boxes on a slide\" and \"we built the 5 required agents\"?",
+          "answer": "we built the 5 required agents",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 27,
+              "section": "11. Close",
+              "chunk_id": 90,
+              "similarity": 0.5757
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.5526
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 17,
+              "similarity": 0.4736
+            },
+            {
+              "page": 15,
+              "section": "General",
+              "chunk_id": 47,
+              "similarity": 0.4721
+            }
+          ]
+        },
+        {
+          "question": "What is the full-stack agentic resilience platform for pharma cold-chain logistics?",
+          "answer": "MedGuard",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 27,
+              "section": "General",
+              "chunk_id": 92,
+              "similarity": 0.597
+            },
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 65,
+              "similarity": 0.568
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.5667
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 6,
+              "similarity": 0.5095
+            }
+          ]
+        },
+        {
+          "question": "What is the difference between \"we built the 5 required agents\" and \"we build the 5 needed agents\"?",
+          "answer": "we built the 5 required agents",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.6384
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 17,
+              "similarity": 0.5344
+            },
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 66,
+              "similarity": 0.5109
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 16,
+              "similarity": 0.4276
+            }
+          ]
+        },
+        {
+          "question": "What is the purpose of MedGuard?",
+          "answer": "pharma cold-chain logistics",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 3,
+              "similarity": 0.5816
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.4912
+            },
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 26,
+              "similarity": 0.2839
+            },
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 68,
+              "similarity": 0.2754
+            }
+          ]
+        },
+        {
+          "question": "What is the difference between \"we have 20 boxes on a slide\" and \"we build the 5 required agents\"?",
+          "answer": "we have 20 agents and can show you any of them working",
+          "type": "Short Answer",
+          "difficulty": "medium",
+          "source": [
+            {
+              "page": 27,
+              "section": "11. Close",
+              "chunk_id": 90,
+              "similarity": 0.5817
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 1,
+              "similarity": 0.5608
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 17,
+              "similarity": 0.4856
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 3,
+              "similarity": 0.4852
+            }
+          ]
+        }
+      ],
+      "type": "Short Answer",
+      "difficulty": "medium",
+      "requested_questions": 5,
+      "generated_questions": 5,
+      "topic": "",
+      "pages_used": [
+        1,
+        2
+      ],
+      "semantic_chunks_created": 98,
+      "retrieval_chunks_used": 6,
+      "retrieval": [
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 0,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 1,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 2,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 3,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 4,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 5,
+          "similarity": 1.0
+        }
+      ]
+    }
   }
 ]
