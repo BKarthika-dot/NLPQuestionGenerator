@@ -3,6 +3,7 @@ import io
 import logging
 import re
 import shutil
+import traceback
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -444,11 +445,15 @@ async def generate(
         raise
 
     except ValueError as e:
-        logger.exception("generate: value error")
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=str(e))
 
     except Exception as e:
-        logger.exception("generate: unexpected failure")
+        # FIX: this was being caught silently -- HTTPException(detail=str(e))
+        # went back to the client, but nothing was ever printed to the
+        # server console, so a 500 here gave no way to diagnose it from the
+        # uvicorn logs alone. Print the full traceback before converting it.
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
     finally:
