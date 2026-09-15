@@ -8,6 +8,7 @@
 # ============================================================
 
 import re
+import logging
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
@@ -19,6 +20,8 @@ from langchain_core.documents import Document
 from sentence_transformers import SentenceTransformer
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+logger = logging.getLogger("question-lab.backend")
 
 
 # ============================================================
@@ -82,6 +85,7 @@ print(f"[INFO] Device: {DEVICE}")
 # ============================================================
 
 def load_pdf(file_path: str) -> List[Document]:
+    logger.info("load_pdf: start path=%s", file_path)
     if not Path(file_path).exists():
         raise ValueError(f"PDF does not exist: {file_path}")
 
@@ -105,6 +109,7 @@ def load_pdf(file_path: str) -> List[Document]:
         raise ValueError("No readable text was found in the PDF.")
 
     print(f"[INFO] Read {len(result)} readable pages.")
+    logger.info("load_pdf: complete readable_pages=%d", len(result))
     return result
 
 
@@ -121,12 +126,14 @@ def clean_text(text: str) -> str:
 
 
 def clean_documents(documents: List[Document]) -> List[Document]:
+    logger.info("clean_documents: start documents=%d", len(documents))
     result = []
     for document in documents:
         text = clean_text(document.page_content)
         if not text:
             continue
         result.append(Document(page_content=text, metadata=document.metadata))
+    logger.info("clean_documents: complete documents=%d", len(result))
     return result
 
 
@@ -259,6 +266,7 @@ class SemanticChunker:
         return chunks
 
     def split(self, documents: List[Document]) -> List[Document]:
+        logger.info("SemanticChunker.split: start documents=%d", len(documents))
         all_chunks = []
         chunk_id = 0
         for document in documents:
@@ -268,6 +276,7 @@ class SemanticChunker:
                 chunk_id += 1
 
         print(f"[INFO] Semantic chunks: {len(all_chunks)}")
+        logger.info("SemanticChunker.split: complete chunks=%d", len(all_chunks))
         return all_chunks
 
 
@@ -719,15 +728,30 @@ class QuestionGeneratorPipeline:
         topic: Optional[str] = None,
         difficulty: str = "medium",
         num_questions: int = 5,
+        progress_callback=None,
     ) -> Dict[str, Any]:
+
+        logger.info(
+            "QuestionGeneratorPipeline.generate: start topic=%r difficulty=%s num_questions=%d",
+            topic,
+            difficulty,
+            num_questions,
+        )
+
+        def report(stage):
+            if progress_callback is not None:
+                progress_callback(stage)
 
         self.validate_input(difficulty, num_questions)
 
+        report("cleaning")
         documents = clean_documents(load_pdf(pdf_path))
+        report("chunking")
         chunks = self.chunker.split(documents)
         if not chunks:
             raise ValueError("No semantic chunks were created.")
 
+        report("embedding")
         retriever = ContextRetriever(chunks, self.embedder)
 
         if topic:
@@ -745,6 +769,7 @@ class QuestionGeneratorPipeline:
         seed_pool = self._build_seed_pool(retriever, chunks, topic, num_questions)
 
         final_questions = []
+        report("generating")
         generated_question_keys = set()
         accepted_question_embeddings: List[torch.Tensor] = []
         attempts = 0
@@ -809,6 +834,7 @@ class QuestionGeneratorPipeline:
                     "source": rag_result["source"],
                 }
             )
+            logger.info("QuestionGeneratorPipeline.generate: accepted question %d/%d", len(final_questions), num_questions)
 
         pages_used = sorted(
             {
@@ -839,6 +865,13 @@ class QuestionGeneratorPipeline:
             "retrieval": self._source_list(topic_results),
             "evaluation": evaluation,
         }
+        logger.info(
+            "QuestionGeneratorPipeline.generate: complete generated=%d pages=%s chunks=%d",
+            len(final_questions),
+            pages_used,
+            len(chunks),
+        )
+        return response
 
 
 # ============================================================
@@ -857,7 +890,9 @@ def generate_questions(
     topic: Optional[str] = None,
     difficulty: str = "medium",
     num_questions: int = 5,
+    progress_callback=None,
 ) -> Dict[str, Any]:
+    logger.info("generate_questions: called pdf_path=%s", pdf_path)
     return pipeline.generate(
         pdf_path=pdf_path,
         topic=topic,
