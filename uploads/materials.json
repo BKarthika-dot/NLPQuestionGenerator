@@ -2132,5 +2132,656 @@
         }
       ]
     }
+  },
+  {
+    "id": "43e402742acc47e3a2c304d593315911",
+    "filename": "BCSE355L_AWS-SOLUTIONS-ARCHITECT_TH_1.0_76_BCSE355L (1).pdf",
+    "stored_filename": "01c86bf3f272412ead89e59924cc9371_BCSE355L_AWS-SOLUTIONS-ARCHITECT_TH_1.0_76_BCSE355L (1).pdf",
+    "topic": "General",
+    "difficulty": "medium",
+    "created_at": "2026-09-15T13:40:53",
+    "data": {
+      "questions": [
+        {
+          "question": "What is the course code of the L T P C BCSE355L course?",
+          "answer": "AWS Solutions Architect 3 0 0 3 Pre-requisite Syllabus version 1.0 Course Objectives 1. Understand advanced AWS Cloud concepts, services, and architectural principles. 2. Learn best practices for security, compliance, and cost optimization in AWS architecture. 3. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "Course Code Course Title L T P C BCSE355L AWS Solutions Architect 3 0 0 3 Pre-requisite Syllabus version 1.0 Course Objectives 1. Understand advanced AWS Cloud concepts, services, and architectural principles.\n\n3. Learn best practices for security, compliance, and cost optimization in AWS architecture.\n\n5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.\n\nCourse Outcomes 1. Demonstrate an in-depth understanding of AWS Cloud architecture, services, and design patterns.\n\nhttps://docs.aws.amazon.com/whitepapers/latest/security-design-of-aws- nitro-system/security-design-of-aws-nitro- system.html?did=wp_card&trk=wp_card 4. https://docs.aws.amazon.com/whitepapers/latest/aws- overview/database.html Item 74/8 - Annexure - 7 Proceedings of the 74th Academic Council (13.06.2024) 130\n\nhttps://docs.aws.amazon.com/whitepapers/latest/aws-overview/storage- services.html Mode of Evaluation: CAT, Quiz and FAT Recommended by Board of Studies 08-05-2024 Approved by Academic Council No. 74 Date 13-06-2024 Item 74/8 - Annexure - 7 Proceedings of the 74th Academic Council (13.06.2024) 131",
+          "source": [
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.4342
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 5,
+              "similarity": 0.2275
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 10,
+              "similarity": 0.1746
+            },
+            {
+              "page": 1,
+              "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+              "chunk_id": 4,
+              "similarity": 0.1666
+            },
+            {
+              "page": 1,
+              "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+              "chunk_id": 2,
+              "similarity": 0.1446
+            },
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 12,
+              "similarity": 0.1231
+            }
+          ]
+        },
+        {
+          "question": "What is the primary purpose of this training?",
+          "answer": "Learn best practices for security, compliance, and cost optimization in AWS architecture. 4. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure. Course Outcomes 1. Demonstrate an in-depth understanding of AWS Cloud architecture, services, and design patterns.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture.\n\n4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business requirements.\n\n5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.\n\nCourse Outcomes 1. Demonstrate an in-depth understanding of AWS Cloud architecture, services, and design patterns.\n\nhttps://docs.aws.amazon.com/whitepapers/latest/security-design-of-aws- nitro-system/security-design-of-aws-nitro- system.html?did=wp_card&trk=wp_card 4. https://docs.aws.amazon.com/whitepapers/latest/aws- overview/database.html Item 74/8 - Annexure - 7 Proceedings of the 74th Academic Council (13.06.2024) 130\n\nhttps://docs.aws.amazon.com/whitepapers/latest/aws-overview/storage- services.html Mode of Evaluation: CAT, Quiz and FAT Recommended by Board of Studies 08-05-2024 Approved by Academic Council No. 74 Date 13-06-2024 Item 74/8 - Annexure - 7 Proceedings of the 74th Academic Council (13.06.2024) 131",
+          "source": [
+            {
+              "page": 1,
+              "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+              "chunk_id": 2,
+              "similarity": 0.2198
+            },
+            {
+              "page": 1,
+              "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+              "chunk_id": 4,
+              "similarity": 0.2131
+            },
+            {
+              "page": 1,
+              "section": "4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business req",
+              "chunk_id": 3,
+              "similarity": 0.1863
+            },
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 12,
+              "similarity": 0.1411
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 5,
+              "similarity": 0.1408
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 10,
+              "similarity": 0.123
+            }
+          ]
+        },
+        {
+          "question": "What is the most important requirement for the AWS architecture?",
+          "answer": "Scalability and Elasticity, H igh Availability and Fault Tolerance, Security, Cost Optimization.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "2. Gain expertise in designing and implementing highly available, scalable, and fault-tolerant AWS solutions.\n\n3. Learn best practices for security, compliance, and cost optimization in AWS architecture.\n\n4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business requirements.\n\n5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.\n\n2. Apply security and compliance measures effectively in AWS architectures using encryption, access controls, and monitoring.\n\nAWS Database ServiceS, Amazon RDS (Relational Database Service), RDS Multi- AZ Deployments, RDS Read Replicas, Amazon Aurora, Amazon DynamoDB, DynamoDB Streams Module:5 AWS Management Tools & Cost Management 4 hours AWS Management Tools, AWS CloudWatch, AWS CloudTrail, AWS Config, AWS Systems Manager, AWS Cost Management, AWS Free Tier, AWS Billing and Account Management, AWS Budgets, AWS Trusted Advisor Module:6 AWS Security and Compliance 4 hours AWS Security and Compliance, AWS Shared Responsibility Model, AWS Key Management Service (KMS), AWS WAF (Web Application Firewall), AWS Shield, AWS Security Best Practices Module:7 AWS Application Integration & Architectural Best Practices 8 hours AWS Application Integration, Amazon SQS (Simple Queue Service), Amazon SNS (Simple Notification Service), Amazon SWF (Simple Workflow Service), AWS Step Functions, AWS Well - Architected Framework, Design Principles for AWS Cloud Architectures, Scalability and Elasticity, H igh Availability and Fault Tolerance, Security, Cost Optimization. Module:8 AWS Migration and Hybrid Architecture 8 hours AWS Migration and Hybrid Architecture, AWS Database Migration Service (DMS), AWS Server Migration Service (SMS), AWS Snowball, AWS Snowball Edge, AWS Snowmobile Total Lecture hours: 45 hours Text Book(s) 1. Saurabh Shrivastava, Neelanjali Srivastav, Alberto Artasanchez , \u201cAWS for Solutions Architects - Second Edition: The definitive guide to AWS Solutions Architecture for migrating to, building, scaling, and succeeding in the cloud\u201d, 28 April 2023, Packt Publishing 2. Alberto Artasanchez, \u201cAWS for Solutions Architects: Design your cloud infrastructure by implementing DevOps, containers, and Amazon Web Services\u201d, 19 February 2021, Packt Publishing Reference 1. https://github.com/srijithsrk/AWS/blob/master/AWS-Certified-Solutions- Architect-Official-Study-Guide.pdf.pdf 2. https://docs.aws.amazon.com/whitepapers/latest/aws- overview/introduction.html?did=wp_card&trk=wp_card 3.",
+          "source": [
+            {
+              "page": 1,
+              "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+              "chunk_id": 2,
+              "similarity": 0.7207
+            },
+            {
+              "page": 1,
+              "section": "2. Apply security and compliance measures effectively in AWS architectures using encryption, access cont",
+              "chunk_id": 6,
+              "similarity": 0.656
+            },
+            {
+              "page": 1,
+              "section": "2. Gain expertise in designing and implementing highly available, scalable, and fault-tolerant AWS solut",
+              "chunk_id": 1,
+              "similarity": 0.643
+            },
+            {
+              "page": 1,
+              "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+              "chunk_id": 4,
+              "similarity": 0.6385
+            },
+            {
+              "page": 1,
+              "section": "4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business req",
+              "chunk_id": 3,
+              "similarity": 0.6359
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 9,
+              "similarity": 0.602
+            }
+          ]
+        },
+        {
+          "question": "What is the most important course that a student must take in order to prepare for the AWS Cloud Course?",
+          "answer": "AWS Solutions Architect 3 0 0 3 Pre-requisite Syllabus version 1.0 Course Objectives 1. Understand advanced AWS Cloud concepts, services, and architectural principles. 3. Learn best practices for security, compliance, and cost optimization in AWS architecture. 4. Configure and manage advanced AW cloud services and resources. 5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "Course Code Course Title L T P C BCSE355L AWS Solutions Architect 3 0 0 3 Pre-requisite Syllabus version 1.0 Course Objectives 1. Understand advanced AWS Cloud concepts, services, and architectural principles.\n\n3. Learn best practices for security, compliance, and cost optimization in AWS architecture.\n\n4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business requirements.\n\n5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.\n\nCourse Outcomes 1. Demonstrate an in-depth understanding of AWS Cloud architecture, services, and design patterns.\n\n4. Configure and manage advanced AWS networking features, storage solutions, database technologies, and compute resources. Module:1 AWS Cloud Foundations & IAM 3 hours Introduction to Cloud Computing, Overview of AWS Global Infrastructure, AWS Shared Responsibility Model, AWS Identity and Access Management (IAM), IAM Users, Groups, and Policies, IAM Roles, IAM Best Practices Module:2 AWS Compute & Storage Services 6 hours AWS Compute Services, Amazon EC2 (Elastic Compute Cloud), EC2 Instance Types, EC2 Pricing Models, EC2 Instance Lifecycle, Auto Scaling, Elastic Load Balancing, AWS Storage Services, Amazon S3 (Simple Storage Service), S3 Storage Classes, S3 Lifecycle Policies, Amazon EBS (Elastic Block Store), Amazon Glacier, Amazon EFS (Elastic File System) Module:3 AWS Networking and Content Delivery 6 hours AWS Networking and Content Delivery, Amazon VPC (Virtual Private Cloud), VPC Subnets, Route Tables, Security Groups, VPC Peering, AWS Direct Connect, Amazon CloudFront Module:4 AWS Database Services 6 hours Item 74/8 - Annexure - 7 Proceedings of the 74th Academic Council (13.06.2024) 129",
+          "source": [
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 5,
+              "similarity": 0.7449
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.7099
+            },
+            {
+              "page": 1,
+              "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+              "chunk_id": 2,
+              "similarity": 0.6933
+            },
+            {
+              "page": 1,
+              "section": "4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business req",
+              "chunk_id": 3,
+              "similarity": 0.629
+            },
+            {
+              "page": 1,
+              "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+              "chunk_id": 4,
+              "similarity": 0.622
+            },
+            {
+              "page": 1,
+              "section": "4. Configure and manage advanced AWS networking features, storage solutions, database technologies, and",
+              "chunk_id": 8,
+              "similarity": 0.5811
+            }
+          ]
+        },
+        {
+          "question": "What is the course's main objective?",
+          "answer": "1. Understand advanced AWS Cloud concepts, services, and architectural principles. 3. Learn best practices for security, compliance, and cost optimization in AWS architecture. 4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business requirements. 5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "Course Code Course Title L T P C BCSE355L AWS Solutions Architect 3 0 0 3 Pre-requisite Syllabus version 1.0 Course Objectives 1. Understand advanced AWS Cloud concepts, services, and architectural principles.\n\n3. Learn best practices for security, compliance, and cost optimization in AWS architecture.\n\n4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business requirements.\n\n5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure.\n\nCourse Outcomes 1. Demonstrate an in-depth understanding of AWS Cloud architecture, services, and design patterns.\n\n5. https://docs.aws.amazon.com/whitepapers/latest/aws-overview/networking- services.html 6. https://docs.aws.amazon.com/cost-management/latest/userguide/what-is- costmanagement.html 7. https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html 8. https://docs.aws.amazon.com/whitepapers/latest/hybrid-cloud-with- aws/hybrid-cloud-use-cases.html 9. https://docs.aws.amazon.com/whitepapers/latest/aws-overview/compute- services.html 10.",
+          "source": [
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 5,
+              "similarity": 0.3513
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.3195
+            },
+            {
+              "page": 1,
+              "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+              "chunk_id": 2,
+              "similarity": 0.2901
+            },
+            {
+              "page": 1,
+              "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+              "chunk_id": 4,
+              "similarity": 0.2175
+            },
+            {
+              "page": 1,
+              "section": "4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business req",
+              "chunk_id": 3,
+              "similarity": 0.175
+            },
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 11,
+              "similarity": 0.1505
+            }
+          ]
+        }
+      ],
+      "type": "Long Answer",
+      "difficulty": "medium",
+      "requested_questions": 5,
+      "generated_questions": 5,
+      "topic": "",
+      "pages_used": [
+        1
+      ],
+      "semantic_chunks_created": 13,
+      "retrieval_chunks_used": 6,
+      "retrieval": [
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 0,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "2. Gain expertise in designing and implementing highly available, scalable, and fault-tolerant AWS solut",
+          "chunk_id": 1,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "3. Learn best practices for security, compliance, and cost optimization in AWS architecture",
+          "chunk_id": 2,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "4. Develop proficiency in selecting appropriate AWS services and resources to meet specific business req",
+          "chunk_id": 3,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "5. Acquire skills in designing and deploying multi -tier applications on AWS infrastructure",
+          "chunk_id": 4,
+          "similarity": 1.0
+        },
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 5,
+          "similarity": 1.0
+        }
+      ],
+      "evaluation": {
+        "per_question": [
+          {
+            "question": "What is the course code of the L T P C BCSE355L course?",
+            "context_relevance": 0.2822,
+            "faithfulness": 0.7844,
+            "answer_relevance": 0.1553
+          },
+          {
+            "question": "What is the primary purpose of this training?",
+            "context_relevance": 0.2098,
+            "faithfulness": 0.8327,
+            "answer_relevance": 0.1865
+          },
+          {
+            "question": "What is the most important requirement for the AWS architecture?",
+            "context_relevance": 0.6008,
+            "faithfulness": 0.4373,
+            "answer_relevance": 0.4884
+          },
+          {
+            "question": "What is the most important course that a student must take in order to prepare for the AWS Cloud Course?",
+            "context_relevance": 0.6994,
+            "faithfulness": 0.8296,
+            "answer_relevance": 0.664
+          },
+          {
+            "question": "What is the course's main objective?",
+            "context_relevance": 0.3486,
+            "faithfulness": 0.7866,
+            "answer_relevance": 0.2146
+          }
+        ],
+        "overall": {
+          "context_relevance": 0.4282,
+          "faithfulness": 0.7341,
+          "answer_relevance": 0.3418,
+          "rag_score": 0.5013
+        }
+      }
+    }
+  },
+  {
+    "id": "e05fb714f1074f79a488de3107936ae9",
+    "filename": "Part6_ComputerVision.pdf",
+    "stored_filename": "9cab60e728b04efc82b982dbe346408f_Part6_ComputerVision.pdf",
+    "topic": "General",
+    "difficulty": "medium",
+    "created_at": "2026-09-15T13:44:30",
+    "data": {
+      "questions": [
+        {
+          "question": "What is the AI Engineering Handbook Part6 a part of?",
+          "answer": "AI Engineering Handbook Part6\u2014AdvancedComputerVision&CNNArchitectures Chapter 6.26 \u2014 OCR Pipeline 95 6.26.1TheOCRWorkflow Chapter 6.38 \u2014 Computer Vision Cheat Sheets Rapid-fire revision sheets for every major topic in this part. Each is meant as a pre-interview or pre-project refresher, notafirstintroduction\u2014see the referenced chapter for fulllexplanations.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "AIEngineeringHandbook Part6\u2014AdvancedComputerVision&CNNArchitectures\n\nAI Engineering Handbook CONTENTS PracticeTasks . . . . . .\n\nAI Engineering Handbook CONTENTS 6.18.3torchvisionImplementation . . . . . .\n\nAI Engineering Handbook CONTENTS Chapter 6.26 \u2014 OCR Pipeline 95 6.26.1TheOCRWorkflow . . . . . .\n\nAI Engineering Handbook CONTENTS SystemDesign/ArchitectureSelection . . . . . .\n\nAI Engineering Handbook CHAPTER6.38\u2014COMPUTERVISIONCHEATSHEETS Chapter 6.38 \u2014 Computer Vision Cheat Sheets Rapid-fire revision sheets for every major topic in this part. Each is meant as a pre-interview or pre-project refresher, notafirstintroduction\u2014seethereferencedchapterforfullexplanations.",
+          "source": [
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 221,
+              "similarity": 0.8148
+            },
+            {
+              "page": 8,
+              "section": "General",
+              "chunk_id": 1674,
+              "similarity": 0.7082
+            },
+            {
+              "page": 6,
+              "section": "General",
+              "chunk_id": 1092,
+              "similarity": 0.6359
+            },
+            {
+              "page": 5,
+              "section": "General",
+              "chunk_id": 814,
+              "similarity": 0.5869
+            },
+            {
+              "page": 1,
+              "section": "General",
+              "chunk_id": 0,
+              "similarity": 0.5588
+            },
+            {
+              "page": 146,
+              "section": "General",
+              "chunk_id": 2322,
+              "similarity": 0.5578
+            }
+          ]
+        },
+        {
+          "question": "Which of these is the most common type of plant?",
+          "answer": "Noisy Labels. The most common type of plant is a deciduous shrub or tree. It is the most common plant in the United States. The average annual rainfall in the U.S. is about 0.00 mm per year.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "14 6.2.5ContoursandMorphology . . . . . .\n\n43 6.10.5ThreeClassifiers,inIncreasingProduction-Readiness . . . . . .\n\n57 6.15.2DatasetDirectoryStructure . . . . . .\n\n84 6.22.3ArchitectureFamilies . . . . . .\n\n104 6.29.2MislabeledImagesandNoisyLabels . . . . . .\n\nIs there severe class imbalance or a small-object-dominant distribution? 6.",
+          "source": [
+            {
+              "page": 6,
+              "section": "General",
+              "chunk_id": 1228,
+              "similarity": 0.2625
+            },
+            {
+              "page": 4,
+              "section": "General",
+              "chunk_id": 577,
+              "similarity": 0.2319
+            },
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 410,
+              "similarity": 0.2194
+            },
+            {
+              "page": 5,
+              "section": "General",
+              "chunk_id": 970,
+              "similarity": 0.2059
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 65,
+              "similarity": 0.2057
+            },
+            {
+              "page": 137,
+              "section": "General",
+              "chunk_id": 2199,
+              "similarity": 0.1947
+            }
+          ]
+        },
+        {
+          "question": "What is the name of the forensic pipeline?",
+          "answer": "OCR Pipeline 95 6.26.1TheOCRWorkflow. . ... . AI Engineering Handbook CHAPTER6.1\u2014THECOMPUTERVISIONPIPELINE Chapter 6.1 \u2014 The Computer Vision Pipeline Every computer vision system, from a hobby webcam filter to a production defect-detection line, moves data through the same sequence of stages. Understanding this pipeline before touching any framework saves you from the single most common beginner failure mode: writing model code before understanding what shape and type of data actually flowsintoit. What is the actual task? (classification / detection / segmentation / OCR) 2. Design an offline pipeline to audit a large archive of satellite images for a specific object class, with no real-time constraint. What changes vs. Why might a two-stage detect-then-classify pipeline outperform a single end-to-end fine-grained detec- tor",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "AI Engineering Handbook CONTENTS Chapter 6.26 \u2014 OCR Pipeline 95 6.26.1TheOCRWorkflow . . . . . .\n\nAI Engineering Handbook CHAPTER6.1\u2014THECOMPUTERVISIONPIPELINE Chapter 6.1 \u2014 The Computer Vision Pipeline Every computer vision system, from a hobby webcam filter to a production defect-detection line, moves data through the same sequence of stages. Understanding this pipeline before touching any framework saves you from the single most common beginner failure mode: writing model code before understanding what shape and type of data actually flowsintoit.\n\nWhat is the actual task? (classification / detection / segmentation / OCR) 2.\n\nDesign an offline pipeline to audit a large archive of satellite images for a specific object class, with no real-time constraint. What changes vs.\n\nWhy might a two-stage detect-then-classify pipeline outperform a single end-to-end fine-grained detec- tor for a retail product-recognition system? DIFFICULTY : HARDCompanies: Amazon, retail tech companies Product catalogschangefarmoreoftenthanit\u2019spracticaltoretrainalargedetector.\n\nH Part 6 Closing Summary \u2022 TheCVpipeline(load->preprocess->augment->model->post-process->evaluate->deploy)isthemental modelunderlyingeveryprojectinthispart. \u2022 Transfer learning is the default starting point for nearly every practical task \u2014 from-scratch training is the exception,nottherule.",
+          "source": [
+            {
+              "page": 9,
+              "section": "General",
+              "chunk_id": 1718,
+              "similarity": 0.4273
+            },
+            {
+              "page": 137,
+              "section": "General",
+              "chunk_id": 2195,
+              "similarity": 0.4014
+            },
+            {
+              "page": 144,
+              "section": "General",
+              "chunk_id": 2309,
+              "similarity": 0.3911
+            },
+            {
+              "page": 144,
+              "section": "General",
+              "chunk_id": 2305,
+              "similarity": 0.3891
+            },
+            {
+              "page": 6,
+              "section": "General",
+              "chunk_id": 1092,
+              "similarity": 0.3832
+            },
+            {
+              "page": 151,
+              "section": "General",
+              "chunk_id": 2375,
+              "similarity": 0.3701
+            }
+          ]
+        },
+        {
+          "question": "What is the name of the place where a lot of people live?",
+          "answer": "Building Families. 6.22.3 ArchitectureFamilies. .121 6.34.5 TemporalConsiderations.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "61 EnvironmentSpecification . . . . . .\n\n64 FolderStructure . . . . . .\n\n84 6.22.3ArchitectureFamilies . . . . . .\n\n.121 6.34.5TemporalConsiderations . . . . . .\n\n.149 EnvironmentChecklist . . . . . .\n\nDIFFICULTY : MEDIUMCompanies: General Primarily driven by dataset size and do- 143",
+          "source": [
+            {
+              "page": 4,
+              "section": "61 EnvironmentSpecification",
+              "chunk_id": 636,
+              "similarity": 0.2629
+            },
+            {
+              "page": 144,
+              "section": "General",
+              "chunk_id": 2313,
+              "similarity": 0.176
+            },
+            {
+              "page": 8,
+              "section": "General",
+              "chunk_id": 1694,
+              "similarity": 0.1744
+            },
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 1512,
+              "similarity": 0.1731
+            },
+            {
+              "page": 4,
+              "section": "64 FolderStructure",
+              "chunk_id": 659,
+              "similarity": 0.17
+            },
+            {
+              "page": 5,
+              "section": "General",
+              "chunk_id": 970,
+              "similarity": 0.1662
+            }
+          ]
+        },
+        {
+          "question": "What is the goal of the practice task?",
+          "answer": "PracticeTasks are a type of task that requires a person to perform a specific task.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": ". 20 PracticeTasks .\n\n36 PracticeTasks . . . . . .\n\n. 47 PracticeTasks .\n\n50 PracticeTasks . . . . . .\n\n112 PracticeTasks . . . . . .\n\n.122 PracticeTasks . . . . . .",
+          "source": [
+            {
+              "page": 6,
+              "section": "112 PracticeTasks",
+              "chunk_id": 1370,
+              "similarity": 0.5418
+            },
+            {
+              "page": 2,
+              "section": "General",
+              "chunk_id": 127,
+              "similarity": 0.5358
+            },
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 1526,
+              "similarity": 0.531
+            },
+            {
+              "page": 3,
+              "section": "36 PracticeTasks",
+              "chunk_id": 340,
+              "similarity": 0.5234
+            },
+            {
+              "page": 3,
+              "section": "General",
+              "chunk_id": 450,
+              "similarity": 0.5179
+            },
+            {
+              "page": 3,
+              "section": "50 PracticeTasks",
+              "chunk_id": 483,
+              "similarity": 0.5173
+            }
+          ]
+        }
+      ],
+      "type": "Long Answer",
+      "difficulty": "medium",
+      "requested_questions": 5,
+      "generated_questions": 5,
+      "topic": "",
+      "pages_used": [
+        1,
+        2
+      ],
+      "semantic_chunks_created": 2378,
+      "retrieval_chunks_used": 6,
+      "retrieval": [
+        {
+          "page": 1,
+          "section": "General",
+          "chunk_id": 0,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 1,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 2,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 3,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 4,
+          "similarity": 1.0
+        },
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 5,
+          "similarity": 1.0
+        }
+      ],
+      "evaluation": {
+        "per_question": [
+          {
+            "question": "What is the AI Engineering Handbook Part6 a part of?",
+            "context_relevance": 0.6898,
+            "faithfulness": 0.7868,
+            "answer_relevance": 0.5804
+          },
+          {
+            "question": "Which of these is the most common type of plant?",
+            "context_relevance": 0.3606,
+            "faithfulness": 0.2553,
+            "answer_relevance": 0.6894
+          },
+          {
+            "question": "What is the name of the forensic pipeline?",
+            "context_relevance": 0.4916,
+            "faithfulness": 0.9196,
+            "answer_relevance": 0.5241
+          },
+          {
+            "question": "What is the name of the place where a lot of people live?",
+            "context_relevance": 0.2005,
+            "faithfulness": 0.3508,
+            "answer_relevance": 0.2606
+          },
+          {
+            "question": "What is the goal of the practice task?",
+            "context_relevance": 0.5055,
+            "faithfulness": 0.5651,
+            "answer_relevance": 0.6437
+          }
+        ],
+        "overall": {
+          "context_relevance": 0.4496,
+          "faithfulness": 0.5755,
+          "answer_relevance": 0.5396,
+          "rag_score": 0.5216
+        }
+      }
+    }
   }
 ]

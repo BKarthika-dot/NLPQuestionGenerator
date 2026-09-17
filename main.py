@@ -21,7 +21,8 @@ from xml.sax.saxutils import escape as escape_xml
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("question-lab")
 
-from backend import DIFFICULTIES, generate_questions, load_pdf, pipeline
+from answer_evaluator import evaluate_answer as score_answer
+from backend import DIFFICULTIES, generate_questions, load_pdf
 
 app = FastAPI(
     title="Automatic Question Generator",
@@ -35,7 +36,6 @@ MATERIALS_FILE = UPLOAD_DIR / "materials.json"
 JOBS = {}
 JOBS_LOCK = Lock()
 JOB_STAGES = ["uploaded", "cleaning", "chunking", "embedding", "generating", "done"]
-QUIZ_CORRECT_THRESHOLD = 0.75
 
 
 class AnswerEvaluationRequest(BaseModel):
@@ -52,17 +52,8 @@ def find_material(material_id):
     return next((item for item in read_materials() if item["id"] == material_id), None)
 
 
-def compare_answers(expected_answer, student_answer):
-    expected_embedding = pipeline.embedder.encode([expected_answer])[0]
-    student_embedding = pipeline.embedder.encode([student_answer])[0]
-    similarity = float(pipeline.embedder.similarity(student_embedding, expected_embedding).item())
-    similarity = max(-1.0, min(1.0, similarity))
-    return {
-        "similarity": round(similarity, 4),
-        "score": max(0, min(10, round(similarity * 10))),
-        "correct": similarity >= QUIZ_CORRECT_THRESHOLD,
-        "threshold": QUIZ_CORRECT_THRESHOLD,
-    }
+def compare_answers(expected_answer, student_answer, keywords=None, concepts=None):
+    return score_answer(student_answer, expected_answer, keywords=keywords, concepts=concepts)
 
 
 def update_job(job_id, stage, **values):
@@ -200,10 +191,16 @@ def evaluate_answer(payload: AnswerEvaluationRequest):
     if not payload.student_answer.strip():
         raise HTTPException(status_code=400, detail="Student answer cannot be empty.")
 
-    result = compare_answers(questions[payload.question_index]["answer"], payload.student_answer)
+    question = questions[payload.question_index]
+    result = compare_answers(
+        question["answer"],
+        payload.student_answer,
+        keywords=question.get("keywords"),
+        concepts=question.get("concepts"),
+    )
     return {
         "question_index": payload.question_index,
-        "expected_answer": questions[payload.question_index]["answer"],
+        "expected_answer": question["answer"],
         **result,
     }
 
@@ -262,9 +259,17 @@ async def evaluate_submission(
                 "question": question["question"],
                 "expected_answer": question["answer"],
                 "student_answer": item["answer"],
-                **compare_answers(question["answer"], item["answer"]),
+                **compare_answers(
+                    question["answer"],
+                    item["answer"],
+                    keywords=question.get("keywords"),
+                    concepts=question.get("concepts"),
+                ),
             })
         total_score = sum(item["score"] for item in results)
+        if(total_score<=45):
+            total_score+=5
+        
         return {
             "material_id": material_id,
             "results": results,
