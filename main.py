@@ -267,8 +267,6 @@ async def evaluate_submission(
                 ),
             })
         total_score = sum(item["score"] for item in results)
-        if(total_score<=45):
-            total_score+=5
         
         return {
             "material_id": material_id,

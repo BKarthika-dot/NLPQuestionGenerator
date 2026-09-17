@@ -92,6 +92,10 @@ def _derive_keywords(reference_tokens: List[str], limit: int = 12) -> List[str]:
     return [term for term, _ in Counter(reference_tokens).most_common(limit)]
 
 
+def _normalized_answer(text: str) -> str:
+    return " ".join(tokenize(text, remove_stop_words=False))
+
+
 def _grade(score: float) -> str:
     if score >= 0.80:
         return "Excellent"
@@ -111,6 +115,7 @@ def evaluate_answer(
     """Return explainable component scores and feedback in the range 0..1."""
     reference_tokens = tokenize(reference_answer)
     student_tokens = tokenize(student_answer)
+    exact_match = bool(reference_tokens) and _normalized_answer(reference_answer) == _normalized_answer(student_answer)
     reference_set = set(reference_tokens)
     student_set = set(student_tokens)
     keyword_list = list(keywords or _derive_keywords(reference_tokens))
@@ -125,6 +130,8 @@ def evaluate_answer(
     length_score = min(1.0, len(student_tokens) / expected_length) if student_tokens else 0.0
     relevance_score = min(1.0, 0.7 * semantic_score + 0.3 * length_score)
     final_score = min(1.0, max(0.0, 0.40 * semantic_score + 0.30 * keyword_score + 0.20 * concept_score + 0.10 * relevance_score))
+    if exact_match:
+        final_score = 1.0
     grade = _grade(final_score)
 
     feedback = []
