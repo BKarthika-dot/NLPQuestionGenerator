@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Question Lab · Student</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+:root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--line:#ddd1db;--good:#438b7e;--bad:#a34f5f}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}button,input,textarea,select{font:inherit}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:#f0e7e2;border-bottom:1px solid #ded1d5}
+.brand{font:800 20px 'Plus Jakarta Sans';letter-spacing:-1px}.brand span{color:var(--purple);font-weight:700;font-size:11px;margin-left:8px;text-transform:uppercase;vertical-align:middle}
+.admin-link{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none}
+main{max-width:720px;margin:0 auto;padding:36px 20px 60px}
+h1,h2,p{margin:0}h1{font:700 26px 'Plus Jakarta Sans';letter-spacing:-1px}h2{font:700 16px 'Plus Jakarta Sans'}
+.intro{color:var(--muted);font-size:13px;margin-top:6px}
+.panel{background:var(--lav);border-radius:16px;padding:22px;margin-top:20px}
+.field{display:block;width:100%;padding:11px;margin-top:12px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}
+label{display:block;font-size:11px;font-weight:700;color:#827581;margin-top:14px}
+.button{border:0;border-radius:10px;padding:12px 16px;color:white;background:var(--purple);cursor:pointer;font-weight:700;font-size:13px;margin-top:16px}
+.button:disabled{opacity:.5;cursor:not-allowed}
+.button.secondary{background:#c9b8c5;color:var(--ink)}
+.error{color:var(--bad);font-size:12px;margin-top:10px}
+.empty{background:#f3e9ed;border:1px dashed #b69faf;border-radius:13px;padding:26px;color:var(--muted);text-align:center;font-size:12px;margin-top:12px}
+.exam-option{display:flex;justify-content:space-between;align-items:center;background:#f8eff0;border:1px solid #e0d0d8;border-radius:11px;padding:13px 15px;margin-top:10px;cursor:pointer}
+.exam-option:hover{background:#f3e3e8}.exam-option.selected{border-color:var(--purple);background:#f3e3e8}
+.exam-option strong{display:block;font-size:13px}.exam-option span{color:var(--muted);font-size:11px}
+.progress{height:7px;background:#d3c1d0;border-radius:8px;overflow:hidden;margin:18px 0}.progress span{display:block;height:100%;width:0;background:var(--purple);transition:width .25s}
+.question-box{background:#f8eff0;border:1px solid #e0d0d8;border-radius:12px;padding:18px}
+.question-box h2{font-size:17px;line-height:1.4}
+.answer{width:100%;min-height:130px;margin-top:14px;padding:12px;border:1px solid #d2c0cf;border-radius:10px;background:#fff8f5;color:var(--ink);resize:vertical;outline:none}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.meta{color:var(--muted);font-size:11px}
+.confirm{text-align:center;padding:30px 10px}
+.confirm .big{font:800 46px 'Plus Jakarta Sans';color:var(--good);margin:10px 0}
+hidden{display:none}
+[hidden]{display:none}
+</style></head>
+<body>
+<div class="topbar"><div class="brand">Question Lab <span>Student Mode</span></div><div><span id="who" class="admin-link" style="margin-right:16px"></span><a class="admin-link" href="/quiz" style="margin-right:16px">Practice Quiz Mode →</a><a class="admin-link" href="#" id="logout-link">Log out</a></div></div>
+<main>
+
+<section id="picker-view">
+    <h1>Take an exam</h1>
+    <p class="intro">Choose an open exam and answer each question. Your answers are submitted to your instructor for review.</p>
+    <div class="panel">
+        <label>Available exams</label>
+        <div id="exam-options"><div class="empty">Loading exams...</div></div>
+        <button id="start" class="button" disabled>Start exam →</button>
+        <p id="picker-error" class="error"></p>
+    </div>
+</section>
+
+<section id="exam-view" hidden>
+    <h1 id="exam-title"></h1>
+    <p id="progress-label" class="meta" style="margin-top:8px"></p>
+    <div class="progress"><span id="progress-fill"></span></div>
+    <div class="question-box">
+        <h2 id="question-text"></h2>
+        <textarea id="answer" class="answer" placeholder="Write your answer..."></textarea>
+    </div>
+    <div class="actions">
+        <button id="previous" class="button secondary" disabled>← Previous</button>
+        <button id="next" class="button">Next →</button>
+    </div>
+    <p id="exam-error" class="error"></p>
+</section>
+
+<section id="confirm-view" hidden>
+    <div class="panel confirm">
+        <h1>Submission received</h1>
+        <div class="big">✓</div>
+        <p class="intro">Your answers have been submitted. Your instructor will review and grade them.</p>
+        <p id="confirm-meta" class="meta" style="margin-top:14px"></p>
+        <button id="take-another" class="button">Take another exam</button>
+    </div>
+</section>
+
+</main>
+<script>
+const pickerView=document.getElementById('picker-view'),examView=document.getElementById('exam-view'),confirmView=document.getElementById('confirm-view');
+const examOptions=document.getElementById('exam-options'),startButton=document.getElementById('start'),pickerError=document.getElementById('picker-error');
+const examTitle=document.getElementById('exam-title'),progressLabel=document.getElementById('progress-label'),progressFill=document.getElementById('progress-fill'),questionText=document.getElementById('question-text'),answerBox=document.getElementById('answer'),previousButton=document.getElementById('previous'),nextButton=document.getElementById('next'),examError=document.getElementById('exam-error');
+let exams=[],selectedExamId=null,exam=null,current=0,answers=[],studentName='';
+
+function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+
+async function loadWhoAmI(){
+    const response=await fetch('/me');
+    const payload=await response.json();
+    if(!payload.student_name){window.location.href='/student-login?next=/student';return}
+    studentName=payload.student_name;
+    document.getElementById('who').textContent=`Signed in as ${studentName}`;
+}
+document.getElementById('logout-link').addEventListener('click', async event => {
+    event.preventDefault();
+    await fetch('/student-logout',{method:'POST'});
+    window.location.href='/student-login';
+});
+
+async function loadExams(){
+    const response=await fetch('/exams');
+    const payload=await response.json();
+    exams=payload.exams||[];
+    const preselect=new URLSearchParams(location.search).get('exam_id');
+    examOptions.innerHTML=exams.length?exams.map(item=>`<div class="exam-option" data-id="${escapeHtml(item.id)}"><div><strong>${escapeHtml(item.title)}</strong><span>${item.question_count} questions</span></div><span>${escapeHtml(item.created_at)}</span></div>`).join(''):'<div class="empty">No exams are open right now. Check back later.</div>';
+    examOptions.querySelectorAll('[data-id]').forEach(option=>option.addEventListener('click',()=>{
+        examOptions.querySelectorAll('.exam-option').forEach(el=>el.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedExamId=option.dataset.id;
+        updateStartButton();
+    }));
+    if(preselect&&exams.some(item=>item.id===preselect)){
+        selectedExamId=preselect;
+        const match=examOptions.querySelector(`[data-id="${CSS.escape(preselect)}"]`);
+        match?.classList.add('selected');
+    }
+    updateStartButton();
+}
+function updateStartButton(){startButton.disabled=!selectedExamId;}
+
+startButton.addEventListener('click',async()=>{
+    pickerError.textContent='';
+    if(!selectedExamId)return;
+    startButton.disabled=true;startButton.textContent='Loading...';
+    try{
+        const response=await fetch(`/exams/${encodeURIComponent(selectedExamId)}`);
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.detail||'Could not load this exam.');
+        exam=payload;
+        current=0;
+        answers=exam.questions.map(()=>'');
+        pickerView.hidden=true;examView.hidden=false;
+        examTitle.textContent=exam.title;
+        renderQuestion();
+    }catch(e){pickerError.textContent=e.message}
+    finally{startButton.disabled=false;startButton.textContent='Start exam →'}
+});
+
+function renderQuestion(){
+    const total=exam.questions.length;
+    progressLabel.textContent=`Question ${current+1} of ${total} · ${studentName}`;
+    progressFill.style.width=`${((current+1)/total)*100}%`;
+    questionText.textContent=exam.questions[current].question;
+    answerBox.value=answers[current]||'';
+    previousButton.disabled=current===0;
+    nextButton.textContent=current===total-1?'Submit exam →':'Next →';
+    examError.textContent='';
+}
+answerBox.addEventListener('input',()=>{answers[current]=answerBox.value;});
+previousButton.addEventListener('click',()=>{answers[current]=answerBox.value;if(current>0){current--;renderQuestion()}});
+nextButton.addEventListener('click',async()=>{
+    answers[current]=answerBox.value;
+    if(current<exam.questions.length-1){current++;renderQuestion();return}
+    // Last question -> submit the whole exam.
+    nextButton.disabled=true;previousButton.disabled=true;
+    examError.textContent='Submitting...';
+    try{
+        const response=await fetch(`/exams/${encodeURIComponent(exam.id)}/submit`,{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({answers:answers.map((answer,index)=>({question_index:index,answer}))})
+        });
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.detail||'Submission failed.');
+        examView.hidden=true;confirmView.hidden=false;
+        document.getElementById('confirm-meta').textContent=`${payload.question_count} questions · submitted ${payload.submitted_at}`;
+    }catch(e){examError.textContent=e.message;nextButton.disabled=false;previousButton.disabled=current===0}
+});
+
+document.getElementById('take-another').addEventListener('click',()=>{
+    confirmView.hidden=true;pickerView.hidden=false;
+    selectedExamId=null;exam=null;answers=[];
+    examOptions.querySelectorAll('.exam-option').forEach(el=>el.classList.remove('selected'));
+    updateStartButton();
+    loadExams();
+});
+
+loadWhoAmI().then(()=>loadExams()).catch(()=>examOptions.innerHTML='<div class="empty">Could not load exams.</div>');
+</script>
+</body>
+</html>

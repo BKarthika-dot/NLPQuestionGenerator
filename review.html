@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Question Lab · Review Submissions</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+:root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--line:#ddd1db;--good:#438b7e;--bad:#a34f5f}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}button,select,input{font:inherit}.app{min-height:100vh;display:grid;grid-template-columns:224px 1fr;background:var(--cream)}aside{background:#f0e7e2;padding:30px 20px 24px;display:flex;flex-direction:column}.brand{font:800 25px 'Plus Jakarta Sans';margin:0 10px 28px}.profile{display:flex;align-items:center;gap:10px;padding:15px 10px 26px;border-bottom:1px solid #ded1d5}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#d18f73;color:white;font-size:20px;font-weight:700}.profile strong{display:block;font-size:13px}.profile small{color:var(--muted);font-size:11px}nav{margin-top:20px;display:grid;gap:7px}nav a{color:#786b78;text-decoration:none;padding:12px 13px;border-radius:13px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:12px}nav a.active,nav a:hover{color:var(--ink);background:#dfd0dc}.nav-icon{width:18px;text-align:center;font-size:17px}.switch-mode{margin-top:auto;border:0;background:transparent;color:var(--purple);padding:12px 13px;text-align:left;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:block}main{min-width:0;padding:34px 40px}.topbar{display:flex;justify-content:space-between;gap:20px;margin-bottom:22px}h1,h2,p{margin:0}h1{font:700 27px 'Plus Jakarta Sans';letter-spacing:-1px}h2{font:700 17px 'Plus Jakarta Sans'}.intro{color:var(--muted);font-size:13px;margin-top:6px}.back{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;padding-top:8px}.panel{background:var(--lav);border-radius:16px;padding:20px;max-width:1100px;margin-bottom:20px}.field{display:block;width:100%;padding:10px;margin-top:12px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}.note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:12px}.error{color:var(--bad);font-size:12px;margin-top:10px}.table-wrap{overflow:auto;margin-top:16px}table{width:100%;min-width:640px;border-collapse:collapse;background:#f8eff0;border-radius:10px;overflow:hidden}th,td{text-align:left;padding:11px;border-bottom:1px solid #e0d0d8;vertical-align:top;font-size:12px}th{color:var(--purple);font-size:10px;text-transform:uppercase}.mini-link{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:0}.empty{background:#f3e9ed;border:1px dashed #b69faf;border-radius:13px;padding:28px;color:var(--muted);text-align:center;font-size:12px}.score-pill{font-weight:700;color:var(--purple)}.detail-table th,.detail-table td{font-size:11px}.correct{color:var(--good);font-weight:700}.incorrect{color:var(--bad);font-weight:700}.summary-row{display:flex;gap:24px;margin-top:4px;flex-wrap:wrap}.summary-row div{font-size:12px;color:var(--muted)}.summary-row strong{display:block;font:700 20px 'Plus Jakarta Sans';color:var(--ink)}
+@media(max-width:900px){.app{grid-template-columns:76px 1fr}aside{padding:22px 10px;align-items:center}.brand{font-size:0;margin:0 0 20px}.brand:after{content:'Q';font-size:25px}.profile{padding:10px 0 20px;border:0}.profile div:last-child,nav a span:not(.nav-icon),.switch-mode span{display:none}nav a{padding:12px}main{padding:25px 20px}}@media(max-width:620px){h1{font-size:23px}}
+</style></head>
+<body><div class="app"><aside><div class="brand">Question Lab</div><div class="profile"><div class="avatar">K</div><div><strong>Welcome back</strong><small>Admin mode</small></div></div><nav><a href="/"><span class="nav-icon">▦</span><span>Dashboard</span></a><a href="/my-materials"><span class="nav-icon">⌂</span><span>My materials</span></a><a href="/evaluate"><span class="nav-icon">≋</span><span>Answer Evaluation</span></a><a class="active" href="/review"><span class="nav-icon">◉</span><span>Review Submissions</span></a></nav><a class="switch-mode" href="/student-login">⇄ <span>Switch to Student Mode</span></a><a class="switch-mode" href="#" onclick="fetch('/logout',{method:'POST'}).then(()=>location.href='/login');return false;">↪ <span>Log out</span></a></aside><main>
+<div class="topbar"><div><h1>REVIEW SUBMISSIONS</h1><p class="intro">See every student submission for an exam, scored automatically against the reference answers.</p></div><a class="back" href="/">← Dashboard</a></div>
+
+<section class="panel">
+    <label class="intro" for="exam">Exam</label>
+    <select id="exam" class="field"><option value="">Loading exams...</option></select>
+    <div id="summary" class="summary-row"></div>
+    <div id="table" class="table-wrap"></div>
+    <p id="error" class="error"></p>
+</section>
+
+<section id="detail-panel" class="panel" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 id="detail-title">Submission detail</h2>
+        <button id="close-detail" class="mini-link">Close ×</button>
+    </div>
+    <div id="detail-table" class="table-wrap"></div>
+</section>
+
+</main></div>
+<script>
+const examSelect=document.getElementById('exam'),summary=document.getElementById('summary'),table=document.getElementById('table'),error=document.getElementById('error'),detailPanel=document.getElementById('detail-panel'),detailTitle=document.getElementById('detail-title'),detailTable=document.getElementById('detail-table');
+function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+
+async function loadExamOptions(){
+    const response=await fetch('/admin/exams');
+    const payload=await response.json();
+    const exams=payload.exams||[];
+    examSelect.innerHTML=exams.length?exams.map(exam=>`<option value="${escapeHtml(exam.id)}">${escapeHtml(exam.title)} (${exam.submission_count} submissions)</option>`).join(''):'<option value="">No exams yet</option>';
+    const requested=new URLSearchParams(location.search).get('exam_id');
+    if(requested&&exams.some(exam=>exam.id===requested))examSelect.value=requested;
+    if(examSelect.value)await loadSubmissions();
+}
+
+async function loadSubmissions(){
+    error.textContent='';summary.innerHTML='';table.innerHTML='';detailPanel.style.display='none';
+    if(!examSelect.value)return;
+    try{
+        const response=await fetch(`/admin/exams/${encodeURIComponent(examSelect.value)}/submissions`);
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.detail||'Could not load submissions.');
+        const submissions=payload.submissions||[];
+        if(submissions.length){
+            const totalMax=submissions.reduce((sum,item)=>sum+item.max_score,0);
+            const totalScore=submissions.reduce((sum,item)=>sum+item.total_score,0);
+            const classAverage=submissions.length?(submissions.reduce((sum,item)=>sum+item.average_score,0)/submissions.length):0;
+            summary.innerHTML=`<div><strong>${submissions.length}</strong>Submissions</div><div><strong>${totalScore}/${totalMax}</strong>Total points</div><div><strong>${classAverage.toFixed(2)}/10</strong>Class average</div>`;
+        }
+        table.innerHTML=submissions.length?`<table><thead><tr><th>Student</th><th>Submitted</th><th>Score</th><th>Average</th><th></th></tr></thead><tbody>${submissions.map(item=>`<tr><td><strong>${escapeHtml(item.student_name)}</strong></td><td>${escapeHtml(item.submitted_at)}</td><td class="score-pill">${item.total_score}/${item.max_score}</td><td>${item.average_score}/10</td><td><button class="mini-link" data-id="${escapeHtml(item.id)}">View details →</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No submissions for this exam yet.</div>';
+        table.querySelectorAll('[data-id]').forEach(button=>button.addEventListener('click',()=>loadDetail(button.dataset.id)));
+    }catch(e){error.textContent=e.message}
+}
+
+async function loadDetail(submissionId){
+    try{
+        const response=await fetch(`/admin/submissions/${encodeURIComponent(submissionId)}`);
+        const submission=await response.json();
+        if(!response.ok)throw new Error(submission.detail||'Could not load submission.');
+        detailTitle.textContent=`${submission.student_name} · ${submission.exam_title} · ${submission.total_score}/${submission.max_score}`;
+        detailTable.innerHTML=`<table class="detail-table"><thead><tr><th>Question</th><th>Expected answer</th><th>Student answer</th><th>Similarity</th><th>Score</th><th>Result</th></tr></thead><tbody>${submission.results.map(item=>`<tr><td><strong>${escapeHtml(item.question)}</strong></td><td>${escapeHtml(item.expected_answer)}</td><td>${escapeHtml(item.student_answer||'(no answer)')}</td><td>${item.similarity}</td><td>${item.score}/10</td><td class="${item.correct?'correct':'incorrect'}">${item.correct?'Correct':'Needs review'}</td></tr>`).join('')}</tbody></table>`;
+        detailPanel.style.display='block';
+        detailPanel.scrollIntoView({behavior:'smooth',block:'start'});
+    }catch(e){error.textContent=e.message}
+}
+
+examSelect.addEventListener('change',loadSubmissions);
+document.getElementById('close-detail').addEventListener('click',()=>detailPanel.style.display='none');
+loadExamOptions().catch(()=>examSelect.innerHTML='<option value="">Could not load exams</option>');
+</script></body></html>

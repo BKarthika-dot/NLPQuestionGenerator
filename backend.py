@@ -74,6 +74,15 @@ QUESTION_CONTEXT_WINDOW = 1
 # that don't match as exact strings but are the same question.
 QUESTION_DEDUP_THRESHOLD = 0.85
 
+# A question is rejected before any answer is even attempted if its best
+# retrieval match isn't actually close to it semantically -- this is the
+# cheap "is this question well-grounded in the document at all" check.
+# Incoherent/malformed questions (mismatched clauses fused from unrelated
+# sentences, e.g. "Which religions had more than one main religion?")
+# typically fail this because their phrasing doesn't correspond to any
+# real passage, even though they're grammatically a valid question.
+MIN_QUESTION_CONTEXT_RELEVANCE = 0.30
+
 QUESTION_TYPE = "Long Answer"
 DIFFICULTIES = {"easy", "medium", "hard"}
 
@@ -165,6 +174,42 @@ def split_into_sentences(text: str) -> List[str]:
 # ============================================================
 # 4. SECTION DETECTION
 # ============================================================
+
+# ============================================================
+# 4b. BOILERPLATE / ADMINISTRATIVE TEXT DETECTION
+# ============================================================
+
+# Matches the kind of front-matter and administrative text that makes a
+# technically-valid but useless question ("What is the course code for
+# NLP?"). These chunks still exist in the index and can be retrieved as
+# supporting context, but they're excluded from the pool of chunks a
+# question is allowed to be generated FROM.
+BOILERPLATE_PATTERNS = re.compile(
+    r"\b(course\s*code|instructor|credits?|isbn|table of contents|"
+    r"syllabus|prerequisites?|copyright|all rights reserved|"
+    r"student\s*id|roll\s*no|semester|academic\s*year|revision\s*history|"
+    r"version\s*\d|published\s*by)\b",
+    flags=re.IGNORECASE,
+)
+
+MIN_SEEDABLE_WORDS = 12
+
+
+def is_boilerplate_chunk(text: str) -> bool:
+    """
+    True if a chunk looks like administrative/front-matter text rather
+    than substantive content -- either it matches a known admin-text
+    pattern, or it's too short/sparse to carry a real concept (a course
+    code line, a header, a lone date).
+    """
+    if not text:
+        return True
+    if BOILERPLATE_PATTERNS.search(text):
+        return True
+    if len(text.split()) < MIN_SEEDABLE_WORDS:
+        return True
+    return False
+
 
 def detect_section(text: str) -> str:
     if not text:
@@ -652,11 +697,24 @@ class QuestionGeneratorPipeline:
         entire run. Both guarantee near-duplicate questions once you ask
         for more than a couple.
         """
-        pool_size = min(len(chunks), max(TOPIC_TOP_K, num_questions * 3))
+        # Administrative/front-matter chunks (course codes, instructor
+        # lines, syllabus boilerplate, ...) are excluded from the seed
+        # candidates -- they still exist in the retrieval index and can
+        # show up as supporting context, but a question is never generated
+        # FROM one of them directly.
+        seedable_chunks = [c for c in chunks if not is_boilerplate_chunk(c.page_content)]
+        if not seedable_chunks:
+            seedable_chunks = list(chunks)
+
+        pool_size = min(len(seedable_chunks), max(TOPIC_TOP_K, num_questions * 3))
 
         if topic:
             topic_query = f"Important educational concepts about {topic}"
-            results = retriever.retrieve(topic_query, pool_size)
+            # Over-retrieve against the full index, then drop boilerplate
+            # hits and trim back to pool_size, so filtering doesn't starve
+            # the pool when the top raw hits happen to be admin text.
+            results = retriever.retrieve(topic_query, pool_size * 2)
+            results = [item for item in results if not is_boilerplate_chunk(item["chunk"].page_content)][:pool_size]
             # Keep retrieval-relevance order but topic-relevant material can
             # still cluster (many top hits from the same paragraph) -- a
             # light interleave by document position spreads them out while
@@ -666,21 +724,25 @@ class QuestionGeneratorPipeline:
         else:
             # No topic: spread seeds evenly across the WHOLE document
             # instead of only ever using the first few chunks.
-            if pool_size >= len(chunks):
-                seeds = list(chunks)
+            if pool_size >= len(seedable_chunks):
+                seeds = list(seedable_chunks)
             else:
-                stride = len(chunks) / pool_size
-                seeds = [chunks[int(i * stride)] for i in range(pool_size)]
+                stride = len(seedable_chunks) / pool_size
+                seeds = [seedable_chunks[int(i * stride)] for i in range(pool_size)]
 
         return seeds or list(chunks[:1])
 
     def _seed_context(self, chunks: List[Document], seed_chunk: Document) -> str:
         """Local context window around a seed chunk (by chunk_id, which is
-        the same as its index in `chunks` since ids are assigned in order)."""
+        the same as its index in `chunks` since ids are assigned in order).
+        Boilerplate neighbors are dropped from the window rather than
+        included, so admin text can't leak into the question prompt just
+        because it happened to sit next to a good chunk."""
         seed_id = seed_chunk.metadata.get("chunk_id", 0)
         start = max(0, seed_id - QUESTION_CONTEXT_WINDOW)
         end = min(len(chunks), seed_id + QUESTION_CONTEXT_WINDOW + 1)
-        return "\n\n".join(c.page_content.strip() for c in chunks[start:end])
+        window = [c for c in chunks[start:end] if c is seed_chunk or not is_boilerplate_chunk(c.page_content)]
+        return "\n\n".join(c.page_content.strip() for c in window)
 
 
     def _generate_rag_answer(self, retriever: "ContextRetriever", question: str) -> Optional[Dict[str, Any]]:
@@ -704,6 +766,26 @@ class QuestionGeneratorPipeline:
             return None
 
         context = retriever.build_context(results)
+
+        # Answerability gate: if the question's own wording doesn't land
+        # close to anything actually in the document, it's very likely
+        # incoherent/malformed (fused from unrelated sentences) rather than
+        # a real question about this material, however grammatical it
+        # looks. Checked against the best-matching CONTEXT SENTENCE (not a
+        # whole-passage pooled embedding) so a long multi-chunk context
+        # doesn't dilute a genuinely good match. Caught here, before
+        # spending a generation call on an answer that would just be
+        # ungrounded.
+        context_sentences = split_into_sentences(context) or [context]
+        context_sentence_embeddings = self.embedder.encode(context_sentences)
+        question_embedding = self.embedder.encode([question])[0]
+        best_context_relevance = float(torch.matmul(context_sentence_embeddings, question_embedding).max())
+        if best_context_relevance < MIN_QUESTION_CONTEXT_RELEVANCE:
+            print(
+                f"[WARN] Question failed answerability gate "
+                f"(best_context_relevance={best_context_relevance:.4f} < {MIN_QUESTION_CONTEXT_RELEVANCE}): {question}"
+            )
+            return None
 
         for attempt in range(1, ANSWER_RETRIES_PER_QUESTION + 1):
             raw_answer = self.generator.generate_answer(question, context)

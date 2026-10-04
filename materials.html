@@ -35,6 +35,17 @@
         .question { background:#f8eff0; border-radius:12px; padding:13px 15px; border:1px solid #e0d0d8; }
         .question strong { display:block; font-size:12px; margin-bottom:6px; } .question p { color:#766b75; font-size:11px; line-height:1.45; }
         .question .tag { margin-top:8px; } .empty { background:#f3e9ed; border:1px dashed #b69faf; border-radius:13px; padding:28px; color:var(--muted); text-align:center; font-size:12px; }
+        .switch-mode { margin-top:auto; border:0; background:transparent; color:var(--purple); padding:12px 13px; text-align:left; font-size:12px; font-weight:700; cursor:pointer; text-decoration:none; display:block; }
+        .question label { display:flex; gap:9px; align-items:flex-start; cursor:pointer; }
+        .question input[type=checkbox] { margin-top:3px; flex-shrink:0; }
+        .field { width:100%; padding:9px 10px; border:1px solid #d2c0cf; border-radius:9px; background:#fff8f5; color:var(--ink); outline:none; font-size:12px; }
+        .mini-link { color:var(--purple); font-size:11px; font-weight:700; cursor:pointer; background:none; border:0; text-decoration:none; }
+        .generate-exam { width:100%; margin-top:8px; border:0; border-radius:10px; padding:10px; color:white; background:var(--purple); cursor:pointer; font-weight:700; font-size:12px; }
+        .generate-exam:disabled { opacity:.6; cursor:wait; }
+        .exam-creator { margin-top:14px; padding-top:14px; border-top:1px solid #d8c7d2; }
+        .select-all { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); }
+        .exam-status { font-size:11px; margin-top:8px; } .exam-status.error { color:#a34f5f; } .exam-status.success { color:#438b7e; }
+        .exam-link-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
         @media (max-width:900px) { .app { grid-template-columns:76px 1fr; } aside { padding:22px 10px; align-items:center; } .brand { font-size:0; margin:0 0 20px; } .brand:after { content:'Q'; font-size:25px; } .profile { padding:10px 0 20px; border:0; } .profile div:last-child, nav a span:not(.nav-icon) { display:none; } nav { margin-top:10px; } nav a { padding:12px; } main { padding:25px 20px; } }
         @media (max-width:620px) { .topbar { margin-bottom:20px; } h1 { font-size:23px; } .material-layout { grid-template-columns:1fr; } .pdf-frame, .questions { height:300px; max-height:300px; } }
     </style>
@@ -48,9 +59,11 @@
                 <a href="/"><span class="nav-icon">▦</span><span>Dashboard</span></a>
                 <a href="/my-materials" class="active"><span class="nav-icon">⌂</span><span>My materials</span></a>
                 <a href="/#results"><span class="nav-icon">▤</span><span>My questions</span></a>
-                <a href="/quiz"><span class="nav-icon">✓</span><span>Quiz Mode</span></a>
                 <a href="/evaluate"><span class="nav-icon">≋</span><span>Answer Evaluation</span></a>
+                <a href="/review"><span class="nav-icon">◉</span><span>Review Submissions</span></a>
             </nav>
+            <a class="switch-mode" href="/student-login">⇄ <span>Switch to Student Mode</span></a>
+            <a class="switch-mode" href="#" onclick="fetch('/logout',{method:'POST'}).then(()=>location.href='/login');return false;">↪ <span>Log out</span></a>
         </aside>
         <main>
             <div class="topbar"><div><h1>MY MATERIALS</h1><p class="intro">Review each PDF alongside the questions and answers generated from it.</p></div><a class="back" href="/">← Dashboard</a></div>
@@ -64,8 +77,18 @@
             materialsList.innerHTML = materials.length ? materials.map(material => {
                 const data = material.data || {};
                 const questions = data.questions || [];
-                const questionMarkup = questions.length ? questions.map((item, index) => `<article class="question"><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer || 'No answer provided.')}</p><span class="tag">${escapeHtml(item.difficulty || material.difficulty)} · ${escapeHtml(item.type || 'Short answer')}</span></article>`).join('') : '<p class="intro">No questions were generated for this material.</p>';
-                return `<article id="material-${escapeHtml(material.id)}" class="material-card"><div class="material-head"><div><h2>${escapeHtml(material.filename)}</h2><p class="material-meta">${escapeHtml(material.topic || 'General')} · ${escapeHtml(material.created_at || '')}</p></div><div><span class="tag">${questions.length} questions</span><a class="tag" href="/quiz?material_id=${encodeURIComponent(material.id)}">Quiz this set</a></div></div><div class="material-layout"><iframe class="pdf-frame" src="/materials/${encodeURIComponent(material.id)}/file" title="Preview of ${escapeHtml(material.filename)}"></iframe><div class="questions">${questionMarkup}</div></div></article>`;
+                const questionMarkup = questions.length ? questions.map((item, index) => `<article class="question"><label><input type="checkbox" class="q-check" value="${index}" checked /><span><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer || 'No answer provided.')}</p><span class="tag">${escapeHtml(item.difficulty || material.difficulty)} · ${escapeHtml(item.type || 'Long Answer')}</span></span></label></article>`).join('') : '<p class="intro">No questions were generated for this material.</p>';
+                return `<article id="material-${escapeHtml(material.id)}" class="material-card" data-material-id="${escapeHtml(material.id)}">
+                    <div class="material-head"><div><h2>${escapeHtml(material.filename)}</h2><p class="material-meta">${escapeHtml(material.topic || 'General')} · ${escapeHtml(material.created_at || '')}</p></div><span class="tag">${questions.length} questions</span></div>
+                    <div class="material-layout"><iframe class="pdf-frame" src="/materials/${encodeURIComponent(material.id)}/file" title="Preview of ${escapeHtml(material.filename)}"></iframe><div class="questions">${questionMarkup}</div></div>
+                    ${questions.length ? `<div class="exam-creator">
+                        <h2 style="font-size:13px">Create an exam from these questions</h2>
+                        <div class="select-all" style="margin-top:8px"><span class="count-label">${questions.length}/${questions.length} questions selected</span><button type="button" class="mini-link toggle-all">Deselect all</button></div>
+                        <input class="field exam-title" placeholder="Exam title (optional)" style="margin-top:8px" />
+                        <button type="button" class="generate-exam create-exam">Create exam from selected →</button>
+                        <p class="exam-status intro"></p>
+                    </div>` : ''}
+                </article>`;
             }).join('') : '<div class="empty">No generated materials yet. Upload a PDF from the dashboard to get started.</div>';
             const materialId = decodeURIComponent(window.location.hash.slice(1));
             if (materialId) document.getElementById(`material-${materialId}`)?.scrollIntoView({ behavior:'smooth', block:'start' });
@@ -80,6 +103,58 @@
                 materialsList.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
             }
         }
+
+        function updateCardCount(card) {
+            const boxes = [...card.querySelectorAll('.q-check')];
+            const checked = boxes.filter(box => box.checked).length;
+            const label = card.querySelector('.count-label');
+            const toggleBtn = card.querySelector('.toggle-all');
+            if (label) label.textContent = `${checked}/${boxes.length} questions selected`;
+            if (toggleBtn) toggleBtn.textContent = (boxes.length && checked === boxes.length) ? 'Deselect all' : 'Select all';
+        }
+        materialsList.addEventListener('change', event => { if (event.target.classList.contains('q-check')) updateCardCount(event.target.closest('.material-card')); });
+        materialsList.addEventListener('click', async event => {
+            const toggleBtn = event.target.closest('.toggle-all');
+            if (toggleBtn) {
+                const card = toggleBtn.closest('.material-card');
+                const shouldSelect = toggleBtn.textContent.trim() === 'Select all';
+                card.querySelectorAll('.q-check').forEach(box => box.checked = shouldSelect);
+                updateCardCount(card);
+                return;
+            }
+            const copyBtn = event.target.closest('.copy-link');
+            if (copyBtn) {
+                navigator.clipboard?.writeText(copyBtn.dataset.link || '');
+                copyBtn.textContent = 'Copied ✓';
+                setTimeout(() => { copyBtn.textContent = 'Copy student link'; }, 1500);
+                return;
+            }
+            const createBtn = event.target.closest('.create-exam');
+            if (createBtn) {
+                const card = createBtn.closest('.material-card');
+                const materialId = card.dataset.materialId;
+                const checked = [...card.querySelectorAll('.q-check:checked')].map(box => Number(box.value));
+                const statusEl = card.querySelector('.exam-status');
+                const titleInput = card.querySelector('.exam-title');
+                statusEl.textContent = ''; statusEl.className = 'exam-status intro';
+                if (!checked.length) { statusEl.textContent = 'Select at least one question.'; statusEl.classList.add('error'); return; }
+                createBtn.disabled = true; createBtn.textContent = 'Creating...';
+                try {
+                    const response = await fetch('/admin/exams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ material_id: materialId, title: titleInput.value.trim() || null, question_indices: checked }) });
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload.detail || 'Could not create exam.');
+                    const link = `${window.location.origin}/student?exam_id=${encodeURIComponent(payload.id)}`;
+                    statusEl.innerHTML = `"${escapeHtml(payload.title)}" created with ${payload.questions.length} question(s) and is open for students.<span class="exam-link-row"><button type="button" class="mini-link copy-link" data-link="${escapeHtml(link)}">Copy student link</button><a class="mini-link" href="/review?exam_id=${encodeURIComponent(payload.id)}">Review submissions →</a></span>`;
+                    statusEl.classList.add('success');
+                    titleInput.value = '';
+                } catch (error) {
+                    statusEl.textContent = error.message; statusEl.classList.add('error');
+                } finally {
+                    createBtn.disabled = false; createBtn.textContent = 'Create exam from selected →';
+                }
+            }
+        });
+
         loadMaterials();
     </script>
 </body>

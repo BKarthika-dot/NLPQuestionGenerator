@@ -36,8 +36,13 @@
         .events { display:grid; gap:9px; } .event { display:flex; align-items:center; gap:10px; background:#f2e8eb; border:1px solid #d8c7d2; padding:9px; border-radius:12px; font-size:11px; } .event-badge { width:31px; height:31px; border-radius:10px; background:#b3ceca; display:grid; place-items:center; } .event small { display:block; color:var(--muted); font-size:9px; margin-top:2px; }
         .projects { margin-top:17px; } .project-list { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; } .project { height:88px; border-radius:13px; padding:12px; display:flex; align-items:flex-end; color:white; font-size:12px; font-weight:700; background:linear-gradient(135deg,#a17766,#e4b168); cursor:pointer; overflow:hidden; } .project:nth-child(even) { background:linear-gradient(135deg,#69848a,#d09273); } .project.empty { background:#d7c5d2; color:var(--purple); cursor:default; }
         .material-detail { display:none; margin-top:17px; } .material-detail.show { display:block; } .material-detail-layout { display:grid; grid-template-columns:minmax(180px, .8fr) minmax(0, 1.2fr); gap:16px; } .pdf-frame { width:100%; height:310px; border:0; border-radius:12px; background:#f5e9eb; } .material-questions { display:grid; gap:8px; max-height:310px; overflow:auto; } .material-questions .question { background:#f8eff0; } .close-detail { color:var(--purple); font-size:11px; font-weight:700; cursor:pointer; background:none; border:0; }
-        .results { display:none; margin-top:17px; } .results.show { display:block; } .result-grid { display:grid; gap:9px; } .question { background:#f8eff0; border-radius:12px; padding:13px 15px; border:1px solid #e0d0d8; } .question strong { display:block; font-size:12px; margin-bottom:6px; } .question p { color:#766b75; font-size:11px; line-height:1.45; } .tag { display:inline-block; margin-top:8px; padding:4px 7px; border-radius:8px; background:#dfcad9; color:var(--purple); font-size:9px; font-weight:700; }
+        .results { display:none; margin-top:17px; } .results.show { display:block; } .result-grid { display:grid; gap:9px; } .question { background:#f8eff0; border-radius:12px; padding:13px 15px; border:1px solid #e0d0d8; } .question label { display:flex; gap:9px; align-items:flex-start; cursor:pointer; } .question input[type=checkbox] { margin-top:3px; flex-shrink:0; } .question strong { display:block; font-size:12px; margin-bottom:6px; } .question p { color:#766b75; font-size:11px; line-height:1.45; } .tag { display:inline-block; margin-top:8px; padding:4px 7px; border-radius:8px; background:#dfcad9; color:var(--purple); font-size:9px; font-weight:700; }
         .status { display:none; }
+        .exam-creator { margin-top:16px; padding-top:16px; border-top:1px solid #d8c7d2; }
+        .select-all { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); }
+        .select-all button { border:0; background:none; color:var(--purple); font-weight:700; cursor:pointer; font-size:11px; }
+        .exam-status.error { color:#a34f5f; } .exam-status.success { color:#438b7e; }
+        .exam-link-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
         @media (max-width:900px) { .app { width:100vw; margin:0; grid-template-columns:76px 1fr; min-height:100vh; } aside { padding:22px 10px; align-items:center; } .brand { font-size:0; margin:0 0 20px; } .brand:after { content:'Q'; font-size:25px; } .profile { padding:10px 0 20px; border:0; } .profile div:last-child, nav button span:not(.nav-icon), .logout { display:none; } nav { margin-top:10px; } nav button { padding:12px; } main { padding:25px 20px; } .layout { grid-template-columns:1fr; } .stats { grid-template-columns:repeat(3,1fr); } .stat { min-height:125px; padding:12px 6px; } .ring { width:62px; height:62px; margin-top:9px; } .ring:after { width:49px; height:49px; } }
         @media (max-width:620px) { .topbar { align-items:flex-start; } .top-actions { gap:8px; } .search { width:110px; } .cards, .material-detail-layout { grid-template-columns:1fr; } .project-list { grid-template-columns:1fr; } }
     </style>
@@ -51,10 +56,11 @@
                 <button id="dashboard-nav" class="active" type="button"><span class="nav-icon">▦</span><span>Dashboard</span></button>
                 <button id="materials-nav" type="button" onclick="window.location.href='/my-materials'"><span class="nav-icon">⌂</span><span>My materials</span></button>
                 <button onclick="document.getElementById('results').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▤</span><span>My questions</span></button>
-                <button type="button" onclick="window.location.href='/quiz'"><span class="nav-icon">✓</span><span>Quiz Mode</span></button>
                 <button type="button" onclick="window.location.href='/evaluate'"><span class="nav-icon">≋</span><span>Answer Evaluation</span></button>
+                <button type="button" onclick="window.location.href='/review'"><span class="nav-icon">◉</span><span>Review Submissions</span></button>
             </nav>
-            <button class="logout">↪ &nbsp; Log out</button>
+            <button class="logout" onclick="window.location.href='/student-login'">⇄ &nbsp; Switch to Student Mode</button>
+            <button class="logout" id="logout-btn">↪ &nbsp; Log out</button>
         </aside>
                 <main>
                     <div id="dashboard-view">
@@ -70,8 +76,29 @@
                             <button id="generate" class="generate">Generate questions →</button>
                         </div>
                     </div>
-                    <div id="results" class="panel results"><div class="panel-head"><h2>Generated questions</h2><div class="export-actions"><button id="download" class="mini-link">Download TXT ↓</button><button id="download-json" class="mini-link">JSON ↓</button><button id="download-pdf" class="mini-link">PDF ↓</button></div></div><div id="result-meta" class="intro"></div><div id="result-grid" class="result-grid"></div></div>
-                    <div id="material-detail" class="panel material-detail"><div class="panel-head"><h2 id="detail-title">Material</h2><button id="close-detail" class="close-detail">Close ×</button></div><div class="material-detail-layout"><iframe id="pdf-frame" class="pdf-frame" title="PDF preview"></iframe><div id="material-questions" class="material-questions"></div></div></div>
+                    <div id="results" class="panel results">
+                        <div class="panel-head"><h2>Generated questions</h2><div class="export-actions"><button id="download" class="mini-link">Download TXT ↓</button><button id="download-json" class="mini-link">JSON ↓</button><button id="download-pdf" class="mini-link">PDF ↓</button></div></div>
+                        <div id="result-meta" class="intro"></div>
+                        <div id="result-grid" class="result-grid"></div>
+                        <div class="exam-creator">
+                            <h2 style="font-size:14px">Create an exam from these questions</h2>
+                            <div class="select-all" style="margin-top:10px"><span id="results-count-label">Select which questions to include</span><button type="button" id="results-toggle-all">Deselect all</button></div>
+                            <input id="results-exam-title" class="field" placeholder="Exam title (optional)" style="margin-top:8px" />
+                            <button id="results-create-exam" class="generate">Create exam from selected →</button>
+                            <p id="results-exam-status" class="intro"></p>
+                        </div>
+                    </div>
+                    <div id="material-detail" class="panel material-detail">
+                        <div class="panel-head"><h2 id="detail-title">Material</h2><button id="close-detail" class="close-detail">Close ×</button></div>
+                        <div class="material-detail-layout"><iframe id="pdf-frame" class="pdf-frame" title="PDF preview"></iframe><div id="material-questions" class="material-questions"></div></div>
+                        <div class="exam-creator">
+                            <h2 style="font-size:14px">Create an exam from these questions</h2>
+                            <div class="select-all" style="margin-top:10px"><span id="detail-count-label">Select which questions to include</span><button type="button" id="detail-toggle-all">Deselect all</button></div>
+                            <input id="detail-exam-title" class="field" placeholder="Exam title (optional)" style="margin-top:8px" />
+                            <button id="detail-create-exam" class="generate">Create exam from selected →</button>
+                            <p id="detail-exam-status" class="intro"></p>
+                        </div>
+                    </div>
                     <div class="panel projects"><div class="panel-head"><h2>My recent materials</h2><button id="refresh-materials" class="mini-link">Refresh ↻</button></div><div id="project-list" class="project-list"><div class="project empty">Loading materials...</div></div></div>
                 </section>
                         </div>
@@ -93,6 +120,10 @@
         let materials = [];
         let selectedFile = null;
         let activeJobId = null;
+        let resultsState = { questions: [], materialId: null };
+        let detailState = { questions: [], materialId: null };
+        const examCreatorUpdaters = {};
+        document.getElementById('logout-btn').addEventListener('click', async () => { await fetch('/logout', { method: 'POST' }); window.location.href = '/login'; });
         const stageLabels = { uploaded:'Uploading', cleaning:'Cleaning', chunking:'Chunking', embedding:'Embedding & storing', generating:'Generating questions', done:'Complete' };
         function debug(functionName, message, details = {}) { console.debug(`[QuestionLab] ${functionName}: ${message}`, details); }
         debug('startup', 'frontend loaded');
@@ -113,14 +144,93 @@
         async function startUpload(file) { const button = document.getElementById('generate'); button.disabled = true; button.textContent = 'Processing...'; activeJobId = null; const form = new FormData(); form.append('file', file); form.append('topic', document.getElementById('topic').value); form.append('difficulty', document.getElementById('difficulty').value); form.append('num_questions', document.getElementById('count').value); showStatus(`Uploading ${file.name}...`, false, 0); try { const payload = await uploadWithProgress(form, file.name); activeJobId = payload.job_id; showStatus('Uploading...', false, 10); pollJob(activeJobId); } catch (error) { console.error('[QuestionLab] upload failed', error); showStatus(error.message, true); button.disabled = false; button.textContent = 'Generate questions →'; } }
         function uploadWithProgress(form, filename) { return new Promise((resolve, reject) => { const request = new XMLHttpRequest(); request.open('POST', '/upload'); request.upload.addEventListener('progress', event => { if (!event.lengthComputable) return; const percent = Math.round((event.loaded / event.total) * 10); showStatus('Uploading...', false, percent); }); request.addEventListener('load', () => { debug('uploadWithProgress', 'response received', { status: request.status }); let payload; try { payload = JSON.parse(request.responseText); } catch (error) { reject(new Error('The server returned an invalid response.')); return; } if (request.status < 200 || request.status >= 300) { reject(new Error(payload.detail || 'Upload failed.')); return; } resolve(payload); }); request.addEventListener('error', () => reject(new Error('Network error while uploading the PDF.'))); request.addEventListener('abort', () => reject(new Error('PDF upload was cancelled.'))); request.send(form); }); }
         async function pollJob(jobId) { try { const response = await fetch(`/jobs/${encodeURIComponent(jobId)}/status`); const job = await response.json(); if (!response.ok) throw new Error(job.detail || 'Status request failed.'); if (job.status === 'failed') showStatus(job.error, true); else if (job.status !== 'done') showStatus(`${stageLabels[job.stage] || job.stage}...`, false, job.progress || 0); if (job.status === 'done') { const resultResponse = await fetch(`/jobs/${encodeURIComponent(jobId)}/result`); const resultPayload = await resultResponse.json(); if (!resultResponse.ok) throw new Error(resultPayload.detail || 'Result request failed.'); latestData = resultPayload.data; renderResults(latestData); await loadMaterials(); showDone(); document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; setTimeout(resetDropzone, 1800); return; } if (job.status !== 'failed') setTimeout(() => pollJob(jobId), 1500); else { document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; } } catch (error) { console.error('[QuestionLab] status polling failed', error); showStatus(error.message, true); document.getElementById('generate').disabled = false; document.getElementById('generate').textContent = 'Generate questions →'; } }
-        function renderResults(data) { debug('renderResults', 'called', { generated: data.generated_questions, questions: data.questions.length }); resultGrid.innerHTML = (data.questions || []).map((item, index) => `<article class="question"><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer)}</p><span class="tag">${escapeHtml(item.difficulty)} · ${escapeHtml(item.type)}</span></article>`).join('') || '<p class="intro">No questions were generated.</p>'; resultMeta.textContent = `${data.generated_questions} questions · ${data.pages_used.length} pages used · ${data.semantic_chunks_created} semantic chunks`; results.classList.add('show'); results.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+        function renderResults(data) {
+            debug('renderResults', 'called', { generated: data.generated_questions, questions: data.questions.length });
+            resultsState = { questions: data.questions || [], materialId: data.material_id || null };
+            resultGrid.innerHTML = (data.questions || []).map((item, index) => `<article class="question"><label><input type="checkbox" class="results-q-check" value="${index}" checked /><span><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer)}</p><span class="tag">${escapeHtml(item.difficulty)} · ${escapeHtml(item.type)}</span></span></label></article>`).join('') || '<p class="intro">No questions were generated.</p>';
+            resultMeta.textContent = `${data.generated_questions} questions · ${data.pages_used.length} pages used · ${data.semantic_chunks_created} semantic chunks`;
+            document.getElementById('results-exam-title').value = '';
+            document.getElementById('results-exam-status').textContent = '';
+            document.getElementById('results-exam-status').className = 'intro';
+            examCreatorUpdaters.results?.();
+            results.classList.add('show');
+            results.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
+
+        // A single exam-creation widget is wired up twice: once for the
+        // "just generated" results panel, once for the "browsing an older
+        // material" detail panel -- so creating an exam works from
+        // wherever the admin is looking at a question set, without
+        // navigating to a separate page.
+        function setupExamCreator(prefix, getState) {
+            const toggleAllBtn = document.getElementById(`${prefix}-toggle-all`);
+            const createBtn = document.getElementById(`${prefix}-create-exam`);
+            const titleInput = document.getElementById(`${prefix}-exam-title`);
+            const statusEl = document.getElementById(`${prefix}-exam-status`);
+            const countLabel = document.getElementById(`${prefix}-count-label`);
+            function checkboxes() { return [...document.querySelectorAll(`.${prefix}-q-check`)]; }
+            function updateCount() {
+                const boxes = checkboxes();
+                const checked = boxes.filter(box => box.checked).length;
+                countLabel.textContent = boxes.length ? `${checked}/${boxes.length} questions selected` : 'Select which questions to include';
+                toggleAllBtn.textContent = (boxes.length && checked === boxes.length) ? 'Deselect all' : 'Select all';
+            }
+            examCreatorUpdaters[prefix] = updateCount;
+            document.addEventListener('change', event => { if (event.target.classList.contains(`${prefix}-q-check`)) updateCount(); });
+            toggleAllBtn.addEventListener('click', () => { const shouldSelect = toggleAllBtn.textContent === 'Select all'; checkboxes().forEach(box => box.checked = shouldSelect); updateCount(); });
+            createBtn.addEventListener('click', async () => {
+                statusEl.textContent = ''; statusEl.className = 'intro';
+                const state = getState();
+                if (!state.materialId) { statusEl.textContent = 'No material selected.'; statusEl.classList.add('exam-status', 'error'); return; }
+                const checked = checkboxes().filter(box => box.checked).map(box => Number(box.value));
+                if (!checked.length) { statusEl.textContent = 'Select at least one question.'; statusEl.classList.add('exam-status', 'error'); return; }
+                createBtn.disabled = true; createBtn.textContent = 'Creating...';
+                try {
+                    const response = await fetch('/admin/exams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ material_id: state.materialId, title: titleInput.value.trim() || null, question_indices: checked }) });
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload.detail || 'Could not create exam.');
+                    const link = `${window.location.origin}/student?exam_id=${encodeURIComponent(payload.id)}`;
+                    statusEl.innerHTML = `"${escapeHtml(payload.title)}" created with ${payload.questions.length} question(s) and is open for students.<span class="exam-link-row"><button class="mini-link" id="${prefix}-copy-link" type="button">Copy student link</button><a class="mini-link" href="/review?exam_id=${encodeURIComponent(payload.id)}">Review submissions →</a></span>`;
+                    statusEl.classList.add('exam-status', 'success');
+                    document.getElementById(`${prefix}-copy-link`).addEventListener('click', event => { navigator.clipboard?.writeText(link); event.target.textContent = 'Copied ✓'; setTimeout(() => { event.target.textContent = 'Copy student link'; }, 1500); });
+                    titleInput.value = '';
+                } catch (error) {
+                    statusEl.textContent = error.message; statusEl.classList.add('exam-status', 'error');
+                } finally {
+                    createBtn.disabled = false; createBtn.textContent = 'Create exam from selected →';
+                }
+            });
+        }
+        setupExamCreator('results', () => resultsState);
+        setupExamCreator('detail', () => detailState);
         function escapeHtml(value) { debug('escapeHtml', 'called'); return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character])); }
         function downloadBlob(blob, filename) { const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); }
         document.getElementById('download').addEventListener('click', () => { debug('download.click', 'started'); if (!latestData) return; const text = latestData.questions.map((item, index) => `${index + 1}. ${item.question}\nAnswer: ${item.answer}`).join('\n\n'); downloadBlob(new Blob([text], {type:'text/plain'}), 'question-set.txt'); });
         document.getElementById('download-json').addEventListener('click', () => { if (!latestData) return; downloadBlob(new Blob([JSON.stringify(latestData.questions, null, 2)], {type:'application/json'}), 'question-set.json'); });
         document.getElementById('download-pdf').addEventListener('click', async () => { if (!latestData || !latestData.material_id) return; const response = await fetch('/export/pdf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({material_id:latestData.material_id}) }); if (!response.ok) return showStatus('PDF export failed.', true); downloadBlob(await response.blob(), 'question-paper.pdf'); });
         async function loadMaterials() { debug('loadMaterials', 'started'); try { const response = await fetch('/materials'); debug('loadMaterials', 'response received', { status: response.status, ok: response.ok }); if (!response.ok) return; const payload = await response.json(); materials = payload.materials || []; debug('loadMaterials', 'rendering materials', { count: materials.length }); projectList.innerHTML = materials.length ? materials.slice(0, 6).map((item, index) => `<button class="project" data-id="${escapeHtml(item.id)}" style="background:${index % 2 ? 'linear-gradient(135deg,#69848a,#d09273)' : 'linear-gradient(135deg,#a17766,#e4b168)'}"><span>${escapeHtml(item.filename)}</span></button>`).join('') : '<div class="project empty">No generated materials yet</div>'; projectList.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => openMaterial(button.dataset.id))); } catch (error) { console.error('[QuestionLab] loadMaterials: failed', error); } }
-        function openMaterial(materialId) { debug('openMaterial', 'opening materials page', { materialId }); window.location.href = `/my-materials#${encodeURIComponent(materialId)}`; }
+        async function openMaterial(materialId) {
+            debug('openMaterial', 'loading material inline', { materialId });
+            try {
+                const response = await fetch(`/materials/${encodeURIComponent(materialId)}`);
+                const material = await response.json();
+                if (!response.ok) throw new Error(material.detail || 'Could not load this material.');
+                const questions = material.data?.questions || [];
+                detailState = { questions, materialId: material.id };
+                document.getElementById('detail-title').textContent = material.filename;
+                document.getElementById('pdf-frame').src = `/materials/${encodeURIComponent(material.id)}/file`;
+                materialQuestions.innerHTML = questions.length ? questions.map((item, index) => `<article class="question"><label><input type="checkbox" class="detail-q-check" value="${index}" checked /><span><strong>${index + 1}. ${escapeHtml(item.question)}</strong><p>${escapeHtml(item.answer || 'No answer provided.')}</p><span class="tag">${escapeHtml(item.difficulty || material.difficulty)} · ${escapeHtml(item.type || 'Long Answer')}</span></span></label></article>`).join('') : '<p class="intro">No questions were generated for this material.</p>';
+                document.getElementById('detail-exam-title').value = '';
+                document.getElementById('detail-exam-status').textContent = '';
+                document.getElementById('detail-exam-status').className = 'intro';
+                examCreatorUpdaters.detail?.();
+                materialDetail.classList.add('show');
+                materialDetail.scrollIntoView({ behavior:'smooth', block:'start' });
+            } catch (error) {
+                console.error('[QuestionLab] openMaterial failed', error);
+                alert(error.message);
+            }
+        }
         document.getElementById('close-detail').addEventListener('click', () => { debug('close-detail.click', 'closing'); materialDetail.classList.remove('show'); document.getElementById('pdf-frame').src = ''; });
         document.getElementById('refresh-materials').addEventListener('click', () => { debug('refresh-materials.click', 'refreshing'); loadMaterials(); });
         document.querySelector('.search').addEventListener('input', event => { debug('search.input', event.target.value); const query = event.target.value.trim().toLowerCase(); projectList.querySelectorAll('[data-id]').forEach(button => { button.hidden = query && !button.textContent.toLowerCase().includes(query); }); });

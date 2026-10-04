@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Question Lab · Student Login</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+:root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--bad:#a34f5f}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}
+button,input{font:inherit}
+.card{width:100%;max-width:380px;background:var(--lav);border-radius:18px;padding:30px 26px;margin:20px}
+.brand{font:800 22px 'Plus Jakarta Sans';letter-spacing:-1px;margin:0}
+.brand span{color:var(--purple);font-weight:700;font-size:11px;margin-left:8px;text-transform:uppercase;vertical-align:middle}
+.subtitle{color:var(--muted);font-size:13px;margin-top:6px}
+label{display:block;font-size:11px;font-weight:700;color:#827581;margin-top:18px}
+.field{display:block;width:100%;padding:11px;margin-top:8px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}
+.button{width:100%;border:0;border-radius:10px;padding:12px;color:white;background:var(--purple);cursor:pointer;font-weight:700;font-size:13px;margin-top:20px}
+.button:disabled{opacity:.5;cursor:not-allowed}
+.error{color:var(--bad);font-size:12px;margin-top:12px}
+.footer-link{display:block;text-align:center;margin-top:18px;color:var(--purple);font-size:11px;font-weight:700;text-decoration:none}
+.note{color:var(--muted);font-size:10px;line-height:1.5;margin-top:14px}
+</style></head>
+<body>
+<form class="card" id="login-form">
+    <h1 class="brand">Question Lab <span>Student</span></h1>
+    <p class="subtitle">Enter your name to take an exam or practice with Quiz Mode.</p>
+    <label for="name">Your name</label>
+    <input id="name" class="field" autocomplete="name" placeholder="e.g. Jordan Lee" required />
+    <button id="submit" class="button" type="submit">Continue →</button>
+    <p id="error" class="error"></p>
+    <p class="note">This just remembers your name for this session so your submissions are attributed to you -- there's no separate password.</p>
+    <a class="footer-link" href="/login">Instructor? Admin login →</a>
+</form>
+<script>
+const form=document.getElementById('login-form'),submitButton=document.getElementById('submit'),error=document.getElementById('error');
+form.addEventListener('submit', async event => {
+    event.preventDefault();
+    error.textContent='';
+    submitButton.disabled=true;submitButton.textContent='Continuing...';
+    try{
+        const response=await fetch('/student-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_name:document.getElementById('name').value})});
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.detail||'Could not continue.');
+        const next=new URLSearchParams(location.search).get('next')||'/student';
+        window.location.href=next;
+    }catch(e){
+        error.textContent=e.message;
+        submitButton.disabled=false;submitButton.textContent='Continue →';
+    }
+});
+</script>
+</body>
+</html>

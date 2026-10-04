@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Question Lab · Manage Exams</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+:root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--line:#ddd1db;--good:#438b7e;--bad:#a34f5f}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}button,select,input{font:inherit}.app{min-height:100vh;display:grid;grid-template-columns:224px 1fr;background:var(--cream)}aside{background:#f0e7e2;padding:30px 20px 24px;display:flex;flex-direction:column}.brand{font:800 25px 'Plus Jakarta Sans';margin:0 10px 28px}.profile{display:flex;align-items:center;gap:10px;padding:15px 10px 26px;border-bottom:1px solid #ded1d5}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#d18f73;color:white;font-size:20px;font-weight:700}.profile strong{display:block;font-size:13px}.profile small{color:var(--muted);font-size:11px}nav{margin-top:20px;display:grid;gap:7px}nav a{color:#786b78;text-decoration:none;padding:12px 13px;border-radius:13px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:12px}nav a.active,nav a:hover{color:var(--ink);background:#dfd0dc}.nav-icon{width:18px;text-align:center;font-size:17px}.switch-mode{margin-top:auto;border:0;background:transparent;color:var(--purple);padding:12px 13px;text-align:left;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:block}main{min-width:0;padding:34px 40px}.topbar{display:flex;justify-content:space-between;gap:20px;margin-bottom:22px}h1,h2,p{margin:0}h1{font:700 27px 'Plus Jakarta Sans';letter-spacing:-1px}h2{font:700 17px 'Plus Jakarta Sans'}.intro{color:var(--muted);font-size:13px;margin-top:6px}.back{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;padding-top:8px}.panel{background:var(--lav);border-radius:16px;padding:20px;max-width:1100px;margin-bottom:20px}.field{display:block;width:100%;padding:10px;margin-top:12px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}.question-picker{margin-top:14px;display:grid;gap:7px;max-height:280px;overflow:auto;padding-right:4px}.question-row{display:flex;gap:10px;align-items:flex-start;background:#f8eff0;border:1px solid #e0d0d8;border-radius:10px;padding:10px 12px;font-size:12px}.question-row input{margin-top:3px}.select-all{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:11px;color:var(--muted)}.select-all button{border:0;background:none;color:var(--purple);font-weight:700;cursor:pointer;font-size:11px}.button{border:0;border-radius:10px;padding:11px 15px;color:white;background:var(--purple);cursor:pointer;font-weight:700;font-size:12px;margin-top:14px}.button:disabled{opacity:.5;cursor:not-allowed}.button.secondary{background:#c9b8c5;color:var(--ink)}.button.danger{background:#c77c8a}.note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:12px}.error{color:var(--bad);font-size:12px;margin-top:10px}.success{color:var(--good);font-size:12px;margin-top:10px}.exam-list{display:grid;gap:10px;margin-top:16px}.exam-card{background:#f8eff0;border:1px solid #e0d0d8;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.exam-card .meta{font-size:11px;color:var(--muted);margin-top:4px}.exam-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.badge{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;text-transform:uppercase}.badge.open{background:#dcefe9;color:var(--good)}.badge.closed{background:#f3dde1;color:var(--bad)}.mini-link{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:0}.empty{background:#f3e9ed;border:1px dashed #b69faf;border-radius:13px;padding:28px;color:var(--muted);text-align:center;font-size:12px}
+@media(max-width:900px){.app{grid-template-columns:76px 1fr}aside{padding:22px 10px;align-items:center}.brand{font-size:0;margin:0 0 20px}.brand:after{content:'Q';font-size:25px}.profile{padding:10px 0 20px;border:0}.profile div:last-child,nav a span:not(.nav-icon),.switch-mode span{display:none}nav a{padding:12px}main{padding:25px 20px}}@media(max-width:620px){h1{font-size:23px}.exam-card{flex-direction:column;align-items:flex-start}}
+</style></head>
+<body><div class="app"><aside><div class="brand">Question Lab</div><div class="profile"><div class="avatar">K</div><div><strong>Welcome back</strong><small>Admin mode</small></div></div><nav><a href="/"><span class="nav-icon">▦</span><span>Dashboard</span></a><a href="/my-materials"><span class="nav-icon">⌂</span><span>My materials</span></a><a href="/quiz"><span class="nav-icon">✓</span><span>Quiz Mode</span></a><a href="/evaluate"><span class="nav-icon">≋</span><span>Answer Evaluation</span></a><a class="active" href="/manage-exams"><span class="nav-icon">▥</span><span>Manage Exams</span></a><a href="/review"><span class="nav-icon">◉</span><span>Review Submissions</span></a></nav><a class="switch-mode" href="/student">⇄ <span>Switch to Student Mode</span></a></aside><main>
+<div class="topbar"><div><h1>MANAGE EXAMS</h1><p class="intro">Turn a generated question set into an exam students can take, then open or close it.</p></div><a class="back" href="/">← Dashboard</a></div>
+
+<section class="panel">
+    <h2>Create an exam</h2>
+    <label class="intro" for="material">Question set</label>
+    <select id="material" class="field"><option value="">Loading materials...</option></select>
+    <label class="intro" for="title" style="margin-top:14px;display:block">Exam title (optional)</label>
+    <input id="title" class="field" placeholder="e.g. Midterm · Chapter 3" />
+    <div class="select-all"><span id="question-count-label">Select which questions to include</span><button id="toggle-all" type="button">Select all</button></div>
+    <div id="question-picker" class="question-picker"><p class="note">Choose a question set above to see its questions.</p></div>
+    <button id="create" class="button">Create exam →</button>
+    <p id="create-error" class="error"></p>
+    <p id="create-success" class="success"></p>
+</section>
+
+<section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Your exams</h2>
+        <button id="refresh" class="mini-link">Refresh ↻</button>
+    </div>
+    <div id="exam-list" class="exam-list"><div class="empty">Loading exams...</div></div>
+</section>
+
+</main></div>
+<script>
+const materialSelect=document.getElementById('material'),titleInput=document.getElementById('title'),picker=document.getElementById('question-picker'),toggleAll=document.getElementById('toggle-all'),countLabel=document.getElementById('question-count-label'),createButton=document.getElementById('create'),createError=document.getElementById('create-error'),createSuccess=document.getElementById('create-success'),examList=document.getElementById('exam-list');
+let materials=[],currentQuestions=[];
+function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+
+async function loadMaterials(){
+    const response=await fetch('/materials');
+    const payload=await response.json();
+    materials=(payload.materials||[]).filter(item=>(item.data?.questions||[]).length);
+    materialSelect.innerHTML=materials.length?('<option value="">Choose a question set...</option>'+materials.map(item=>`<option value="${escapeHtml(item.id)}">${escapeHtml(item.filename)} (${(item.data?.questions||[]).length} questions)</option>`).join('')):'<option value="">No materials with questions yet</option>';
+}
+
+function renderQuestionPicker(){
+    if(!currentQuestions.length){picker.innerHTML='<p class="note">This material has no questions.</p>';countLabel.textContent='Select which questions to include';return}
+    picker.innerHTML=currentQuestions.map((item,index)=>`<label class="question-row"><input type="checkbox" class="q-check" value="${index}" checked /><span>${index+1}. ${escapeHtml(item.question)}</span></label>`).join('');
+    updateCountLabel();
+    picker.querySelectorAll('.q-check').forEach(box=>box.addEventListener('change',updateCountLabel));
+}
+function updateCountLabel(){const boxes=[...picker.querySelectorAll('.q-check')];const checked=boxes.filter(b=>b.checked).length;countLabel.textContent=`${checked}/${boxes.length} questions selected`;toggleAll.textContent=checked===boxes.length?'Deselect all':'Select all';}
+toggleAll.addEventListener('click',()=>{const boxes=[...picker.querySelectorAll('.q-check')];const shouldSelect=toggleAll.textContent==='Select all';boxes.forEach(b=>b.checked=shouldSelect);updateCountLabel();});
+
+materialSelect.addEventListener('change',()=>{
+    const material=materials.find(item=>item.id===materialSelect.value);
+    currentQuestions=material?.data?.questions||[];
+    renderQuestionPicker();
+});
+
+createButton.addEventListener('click',async()=>{
+    createError.textContent='';createSuccess.textContent='';
+    if(!materialSelect.value){createError.textContent='Choose a question set first.';return}
+    const checked=[...picker.querySelectorAll('.q-check:checked')].map(box=>Number(box.value));
+    if(!checked.length){createError.textContent='Select at least one question.';return}
+    createButton.disabled=true;createButton.textContent='Creating...';
+    try{
+        const response=await fetch('/admin/exams',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({material_id:materialSelect.value,title:titleInput.value.trim()||null,question_indices:checked})});
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.detail||'Could not create exam.');
+        createSuccess.textContent=`"${payload.title}" created with ${payload.questions.length} question(s) and is open for students.`;
+        titleInput.value='';
+        await loadExams();
+    }catch(e){createError.textContent=e.message}
+    finally{createButton.disabled=false;createButton.textContent='Create exam →'}
+});
+
+async function loadExams(){
+    const response=await fetch('/admin/exams');
+    const payload=await response.json();
+    const exams=payload.exams||[];
+    examList.innerHTML=exams.length?exams.map(exam=>`
+        <article class="exam-card">
+            <div>
+                <strong>${escapeHtml(exam.title)}</strong>
+                <div class="meta">${exam.question_count} questions · ${exam.submission_count} submission(s) · ${escapeHtml(exam.source_filename||'')} · ${escapeHtml(exam.created_at)}</div>
+            </div>
+            <div class="exam-actions">
+                <span class="badge ${exam.status}">${exam.status}</span>
+                <button class="mini-link" data-copy="${escapeHtml(exam.id)}">Copy student link</button>
+                <a class="mini-link" href="/review?exam_id=${encodeURIComponent(exam.id)}">Review submissions →</a>
+                <button class="mini-link" data-toggle="${escapeHtml(exam.id)}" data-status="${exam.status}">${exam.status==='open'?'Close exam':'Reopen exam'}</button>
+            </div>
+        </article>
+    `).join(''):'<div class="empty">No exams created yet. Create one above.</div>';
+
+    examList.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',()=>{
+        const url=`${window.location.origin}/student?exam_id=${encodeURIComponent(button.dataset.copy)}`;
+        navigator.clipboard?.writeText(url);
+        button.textContent='Copied ✓';
+        setTimeout(()=>button.textContent='Copy student link',1500);
+    }));
+    examList.querySelectorAll('[data-toggle]').forEach(button=>button.addEventListener('click',async()=>{
+        const nextStatus=button.dataset.status==='open'?'closed':'open';
+        button.disabled=true;
+        try{
+            const response=await fetch(`/admin/exams/${encodeURIComponent(button.dataset.toggle)}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nextStatus})});
+            if(!response.ok)throw new Error('Could not update exam status.');
+            await loadExams();
+        }catch(e){alert(e.message)}
+        finally{button.disabled=false}
+    }));
+}
+
+document.getElementById('refresh').addEventListener('click',loadExams);
+loadMaterials().catch(()=>materialSelect.innerHTML='<option value="">Could not load materials</option>');
+loadExams().catch(()=>examList.innerHTML='<div class="empty">Could not load exams.</div>');
+</script></body></html>
