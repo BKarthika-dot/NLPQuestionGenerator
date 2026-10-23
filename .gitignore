@@ -1,0 +1,15 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# OS and editor files
+.DS_Store
+.vscode/
