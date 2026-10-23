@@ -112,5 +112,210 @@
     "total_score": 8,
     "max_score": 40,
     "average_score": 2.0
+  },
+  {
+    "id": "f5e28750b7374eb596d5c0984a80d240",
+    "exam_id": "d76e4dee6a234249a0e970fc4dd3a731",
+    "exam_title": "ES CAT",
+    "student_name": "Divya",
+    "student_email": "divya@gmail.com",
+    "submitted_at": "2026-10-20T05:40:52",
+    "results": [
+      {
+        "question_index": 0,
+        "question": "What is a Cross Assembler?",
+        "expected_answer": "A type of assembler that is designed to generate machine code for a different processor from the one on which the assembling itself runs.",
+        "student_answer": "taking an assembler and crossing functionality",
+        "similarity": 0.0058,
+        "score": 0,
+        "correct": false,
+        "threshold": 0.6,
+        "coverage": 0.0058,
+        "support": 0.9719,
+        "contradiction": 0.0007,
+        "embedding_similarity": 0.4515,
+        "grounded": true,
+        "key_points": [
+          {
+            "text": "A type of assembler that is designed to generate machine code for a different processor from the one on which the assembling itself runs.",
+            "coverage": 0.006,
+            "entailment": 0.006,
+            "contradicted": false
+          }
+        ],
+        "missing_points": [
+          "A type of assembler that is designed to generate machine code for a different processor from the one on which the assembling itself runs."
+        ],
+        "contradicted_claims": [],
+        "unsupported_claims": [],
+        "ungrounded_reference_points": [],
+        "note": ""
+      },
+      {
+        "question_index": 1,
+        "question": "What is the name of the program that debugs a source code?",
+        "expected_answer": "DEBUGGING TOOLS REMOTE DEBUGGER Remote debuggers are one of the commonly used downloading and testing tools during development of embedded software It is used to monitor/control embedded SW. It is Used to download, execute and debug embedded software over a comm. link. In-Circuit Emulator (ICE) takes the place of the target processor. It contains a copy of target processor, plus RAM, ROM, and its own embedded software.",
+        "student_answer": "debugger program",
+        "similarity": 0.0422,
+        "score": 0,
+        "correct": false,
+        "threshold": 0.6,
+        "coverage": 0.0477,
+        "support": 0.6153,
+        "contradiction": 0.0011,
+        "embedding_similarity": 0.6142,
+        "grounded": true,
+        "key_points": [
+          {
+            "text": "DEBUGGING TOOLS REMOTE DEBUGGER Remote debuggers are one of the commonly used downloading and testing tools during development of embedded software It is used to monitor/control embedded SW.",
+            "coverage": 0.19,
+            "entailment": 0.016,
+            "contradicted": false
+          },
+          {
+            "text": "It is Used to download, execute and debug embedded software over a comm.",
+            "coverage": 0.001,
+            "entailment": 0.001,
+            "contradicted": false
+          },
+          {
+            "text": "In-Circuit Emulator (ICE) takes the place of the target processor.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "It contains a copy of target processor, plus RAM, ROM, and its own embedded software.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          }
+        ],
+        "missing_points": [
+          "DEBUGGING TOOLS REMOTE DEBUGGER Remote debuggers are one of the commonly used downloading and testing tools during development of embedded software It is used to monitor/control embedded SW.",
+          "It is Used to download, execute and debug embedded software over a comm.",
+          "In-Circuit Emulator (ICE) takes the place of the target processor.",
+          "It contains a copy of target processor, plus RAM, ROM, and its own embedded software."
+        ],
+        "contradicted_claims": [],
+        "unsupported_claims": [],
+        "ungrounded_reference_points": [],
+        "note": ""
+      },
+      {
+        "question_index": 2,
+        "question": "How are relocating programs done?",
+        "expected_answer": "Change addresses already assigned to symbols. This will also involve patching up all references to reflect the newly assigned address. Relocation process involves following, a) Section Merging: The Linker then concatenates like-named sections from all the input object files. The combined sections (output sections) are usually given the same names as their input sections. Program addresses are adjusted to take account of the concatentation. b) Section placement: When a program is assembled each section is assumed to start from address 0. And thus, symbols are assigned values relative to the start of the section. When the final executable is created, the section is placed at some address X. All references to the symbols defined within the section, are incremented by X, so that they point to the new location. Step 1: Once the binary image is ready on the computer, the device programmer is connected to the computer. Step 2: The uP/uC or memory chip, usually the ROM which is supposed to contain",
+        "student_answer": "shifting to a different environment",
+        "similarity": 0.0,
+        "score": 0,
+        "correct": false,
+        "threshold": 0.6,
+        "coverage": 0.0,
+        "support": 0.9743,
+        "contradiction": 0.0,
+        "embedding_similarity": 0.3042,
+        "grounded": true,
+        "key_points": [
+          {
+            "text": "Change addresses already assigned to symbols.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "This will also involve patching up all references to reflect the newly assigned address.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "Relocation process involves following, a) Section Merging: The Linker then concatenates like-named sections from all the input object files.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "The combined sections (output sections) are usually given the same names as their input sections.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "Program addresses are adjusted to take account of the concatentation.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "b) Section placement: When a program is assembled each section is assumed to start from address 0.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          }
+        ],
+        "missing_points": [
+          "Change addresses already assigned to symbols.",
+          "This will also involve patching up all references to reflect the newly assigned address.",
+          "Relocation process involves following, a) Section Merging: The Linker then concatenates like-named sections from all the input object files.",
+          "The combined sections (output sections) are usually given the same names as their input sections.",
+          "Program addresses are adjusted to take account of the concatentation.",
+          "b) Section placement: When a program is assembled each section is assumed to start from address 0."
+        ],
+        "contradicted_claims": [],
+        "unsupported_claims": [],
+        "ungrounded_reference_points": [],
+        "note": ""
+      },
+      {
+        "question_index": 3,
+        "question": "What are the main features of the command shell?",
+        "expected_answer": "MAKEFILE Manually entering individual compiler and linker commands on the command line becomes tiresome very quickly. In order to avoid this, a makefile can be used. A Makefile is commonly used in Unix and Unix-like systems, but they can also be used on other platforms with tools like GNU Make.",
+        "student_answer": "writing code",
+        "similarity": 0.0,
+        "score": 0,
+        "correct": false,
+        "threshold": 0.6,
+        "coverage": 0.0,
+        "support": 0.0407,
+        "contradiction": 0.9375,
+        "embedding_similarity": 0.2396,
+        "grounded": true,
+        "key_points": [
+          {
+            "text": "MAKEFILE Manually entering individual compiler and linker commands on the command line becomes tiresome very quickly.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "In order to avoid this, a makefile can be used.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          },
+          {
+            "text": "A Makefile is commonly used in Unix and Unix-like systems, but they can also be used on other platforms with tools like GNU Make.",
+            "coverage": 0.0,
+            "entailment": 0.0,
+            "contradicted": false
+          }
+        ],
+        "missing_points": [
+          "MAKEFILE Manually entering individual compiler and linker commands on the command line becomes tiresome very quickly.",
+          "In order to avoid this, a makefile can be used.",
+          "A Makefile is commonly used in Unix and Unix-like systems, but they can also be used on other platforms with tools like GNU Make."
+        ],
+        "contradicted_claims": [
+          "writing code"
+        ],
+        "unsupported_claims": [],
+        "ungrounded_reference_points": [],
+        "note": ""
+      }
+    ],
+    "total_score": 0,
+    "max_score": 40,
+    "average_score": 0.0
   }
 ]

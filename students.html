@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Question Lab · Students</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+:root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--line:#ddd1db;--good:#438b7e;--bad:#a34f5f}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}button,select,input{font:inherit}.app{min-height:100vh;display:grid;grid-template-columns:224px 1fr;background:var(--cream)}aside{background:#f0e7e2;padding:30px 20px 24px;display:flex;flex-direction:column}.brand{font:800 25px 'Plus Jakarta Sans';margin:0 10px 28px}.profile{display:flex;align-items:center;gap:10px;padding:15px 10px 26px;border-bottom:1px solid #ded1d5}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#d18f73;color:white;font-size:20px;font-weight:700}.profile strong{display:block;font-size:13px}.profile small{color:var(--muted);font-size:11px}nav{margin-top:20px;display:grid;gap:7px}nav a{color:#786b78;text-decoration:none;padding:12px 13px;border-radius:13px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:12px}nav a.active,nav a:hover{color:var(--ink);background:#dfd0dc}.nav-icon{width:18px;text-align:center;font-size:17px}.switch-mode{margin-top:auto;border:0;background:transparent;color:var(--purple);padding:12px 13px;text-align:left;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:block}main{min-width:0;padding:34px 40px}.topbar{display:flex;justify-content:space-between;gap:20px;margin-bottom:22px}h1,h2,p{margin:0}h1{font:700 27px 'Plus Jakarta Sans';letter-spacing:-1px}h2{font:700 17px 'Plus Jakarta Sans'}.intro{color:var(--muted);font-size:13px;margin-top:6px}.back{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;padding-top:8px}.panel{background:var(--lav);border-radius:16px;padding:20px;max-width:1100px;margin-bottom:20px}.field{display:block;width:100%;padding:10px;margin-top:12px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}.note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:12px}.error{color:var(--bad);font-size:12px;margin-top:10px}.table-wrap{overflow:auto;margin-top:16px}table{width:100%;min-width:640px;border-collapse:collapse;background:#f8eff0;border-radius:10px;overflow:hidden}th,td{text-align:left;padding:11px;border-bottom:1px solid #e0d0d8;vertical-align:top;font-size:12px}th{color:var(--purple);font-size:10px;text-transform:uppercase}.mini-link{color:var(--purple);font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:0}.empty{background:#f3e9ed;border:1px dashed #b69faf;border-radius:13px;padding:28px;color:var(--muted);text-align:center;font-size:12px}.score-pill{font-weight:700;color:var(--purple)}.detail-table th,.detail-table td{font-size:11px}.correct{color:var(--good);font-weight:700}.incorrect{color:var(--bad);font-weight:700}.summary-row{display:flex;gap:24px;margin-top:4px;flex-wrap:wrap}.summary-row div{font-size:12px;color:var(--muted)}.summary-row strong{display:block;font:700 20px 'Plus Jakarta Sans';color:var(--ink)}
+@media(max-width:900px){.app{grid-template-columns:76px 1fr}aside{padding:22px 10px;align-items:center}.brand{font-size:0;margin:0 0 20px}.brand:after{content:'Q';font-size:25px}.profile{padding:10px 0 20px;border:0}.profile div:last-child,nav a span:not(.nav-icon),.switch-mode span{display:none}nav a{padding:12px}main{padding:25px 20px}}@media(max-width:620px){h1{font-size:23px}}
+.textarea{display:block;width:100%;min-height:96px;padding:10px;margin-top:10px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink);font:inherit;font-size:12px;resize:vertical}.button{border:0;border-radius:10px;padding:11px 15px;color:white;background:var(--purple);cursor:pointer;font-weight:700;font-size:12px;margin-top:12px}.button:disabled{opacity:.5;cursor:not-allowed}.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;white-space:nowrap}.badge.invited{background:#f1e6c9;color:#8a6a1d}.badge.registered{background:#dcefe9;color:var(--good)}.link-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--muted)}.link-row code{background:#f8eff0;border:1px solid #e0d0d8;border-radius:7px;padding:4px 8px;color:var(--ink)}.msg{font-size:12px;margin-top:10px;line-height:1.5}.msg.ok{color:var(--good)}.msg.err{color:var(--bad)}.row-actions{display:flex;gap:12px;justify-content:flex-end}.mini-link.danger{color:var(--bad)}</style></head>
+<body><div class="app"><aside><div class="brand">Question Lab</div><div class="profile"><div class="avatar">K</div><div><strong>Welcome back</strong><small>Admin mode</small></div></div><nav><a href="/"><span class="nav-icon">▦</span><span>Dashboard</span></a><a href="/my-materials"><span class="nav-icon">⌂</span><span>My materials</span></a><a href="/evaluate"><span class="nav-icon">≋</span><span>Answer Evaluation</span></a><a href="/review"><span class="nav-icon">◉</span><span>Review Submissions</span></a><a class="active" href="/students"><span class="nav-icon">✉</span><span>Students</span></a></nav><a class="switch-mode" href="/student-login">⇄ <span>Switch to Student Mode</span></a><a class="switch-mode" href="#" onclick="fetch('/logout',{method:'POST'}).then(()=>location.href='/login');return false;">↪ <span>Log out</span></a></aside><main>
+<div class="topbar"><div><h1>STUDENTS</h1><p class="intro">Approve the email addresses that may take exams. Approved students create their own password the first time they sign in.</p></div><a class="back" href="/">← Dashboard</a></div>
+
+<section class="panel">
+    <h2>Approve email addresses</h2>
+    <p class="note">Paste one or many: separated by new lines, commas, or in "Name &lt;email&gt;" form. Addresses are matched case-insensitively.</p>
+    <textarea id="emails" class="textarea" placeholder="jo@school.edu&#10;amy@school.edu, sam@school.edu"></textarea>
+    <button id="add" class="button">Approve emails</button>
+    <p id="add-msg" class="msg"></p>
+    <div class="link-row">Share this with students: <code id="signup-link"></code><button id="copy-link" class="mini-link" type="button">Copy link</button></div>
+    <p class="note">Nothing is emailed automatically. Students open the link, enter their approved address, and choose a password. Whoever registers an approved address first owns that account, so share the link only with the people you approved. If someone gets locked out or the wrong person claimed an address, use Reset below.</p>
+</section>
+
+<section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h2>Approved students</h2><span id="counts" class="note" style="margin:0"></span></div>
+    <div id="table" class="table-wrap"></div>
+    <p id="error" class="error"></p>
+</section>
+</main></div>
+<script>
+const emailsBox=document.getElementById('emails'),addButton=document.getElementById('add'),addMsg=document.getElementById('add-msg'),table=document.getElementById('table'),counts=document.getElementById('counts'),error=document.getElementById('error');
+const signupUrl=`${location.origin}/student-login#register`;
+document.getElementById('signup-link').textContent=signupUrl;
+document.getElementById('copy-link').addEventListener('click',event=>{navigator.clipboard?.writeText(signupUrl);event.target.textContent='Copied ✓';setTimeout(()=>event.target.textContent='Copy link',1500)});
+function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+const fmt=value=>value?String(value).replace('T',' '):'—';
+
+async function api(url,options){
+    const response=await fetch(url,options);
+    if(response.status===401){location.href='/login?next=/students';throw new Error('Session expired.')}
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.detail||'Request failed.');
+    return payload;
+}
+
+async function load(){
+    error.textContent='';
+    try{
+        const {students}=await api('/admin/students');
+        const registered=students.filter(item=>item.status==='registered').length;
+        counts.textContent=students.length?`${students.length} approved · ${registered} registered · ${students.length-registered} waiting to create a password`:'';
+        table.innerHTML=students.length?`<table><thead><tr><th>Email</th><th>Name</th><th>Status</th><th>Approved</th><th>Registered</th><th></th></tr></thead><tbody>${students.map(item=>`<tr><td><strong>${escapeHtml(item.email)}</strong></td><td>${escapeHtml(item.name||'—')}</td><td><span class="badge ${item.status}">${item.status==='invited'?'Waiting':'Registered'}</span></td><td>${escapeHtml(fmt(item.invited_at))}</td><td>${escapeHtml(fmt(item.registered_at))}</td><td><div class="row-actions">${item.status==='registered'?`<button class="mini-link" data-action="reset" data-email="${escapeHtml(item.email)}">Reset password</button>`:''}<button class="mini-link danger" data-action="remove" data-email="${escapeHtml(item.email)}">Remove</button></div></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No students approved yet. Add some above.</div>';
+    }catch(e){error.textContent=e.message}
+}
+
+addButton.addEventListener('click',async()=>{
+    addMsg.className='msg';addMsg.textContent='';
+    if(!emailsBox.value.trim()){addMsg.className='msg err';addMsg.textContent='Enter at least one email address.';return}
+    addButton.disabled=true;
+    try{
+        const result=await api('/admin/students',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emails:emailsBox.value})});
+        const parts=[`${result.added.length} approved`];
+        if(result.already_listed.length)parts.push(`${result.already_listed.length} already on the list`);
+        if(result.invalid.length)parts.push(`${result.invalid.length} skipped as invalid (${result.invalid.map(escapeHtml).join(', ')})`);
+        addMsg.className=result.invalid.length?'msg err':'msg ok';
+        addMsg.innerHTML=parts.join(' · ')+'.';
+        // Keep only the rejected addresses in the box so they can be corrected and resubmitted.
+        emailsBox.value=result.invalid.join('\n');
+        await load();
+    }catch(e){addMsg.className='msg err';addMsg.textContent=e.message}
+    finally{addButton.disabled=false}
+});
+
+table.addEventListener('click',async event=>{
+    const button=event.target.closest('[data-action]');
+    if(!button)return;
+    const {action,email}=button.dataset;
+    const prompt=action==='reset'
+        ?`Reset the password for ${email}?\n\nThey will be signed out immediately and must create a new password.`
+        :`Remove ${email}?\n\nThey lose access immediately. Their past submissions are kept.`;
+    if(!confirm(prompt))return;
+    button.disabled=true;
+    try{
+        await api(action==='reset'?`/admin/students/${encodeURIComponent(email)}/reset`:`/admin/students/${encodeURIComponent(email)}`,{method:action==='reset'?'POST':'DELETE'});
+        await load();
+    }catch(e){error.textContent=e.message;button.disabled=false}
+});
+
+load();
+</script></body></html>

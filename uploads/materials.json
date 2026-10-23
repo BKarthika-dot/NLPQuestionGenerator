@@ -2990,5 +2990,334 @@
         }
       }
     }
+  },
+  {
+    "id": "4d339ae8ba5e46efbf9567ffa6667fb5",
+    "filename": "ESD Module_ 4.pdf",
+    "stored_filename": "6b96b1fa07404baea7ad49abebfad3ab_ESD Module_ 4.pdf",
+    "topic": "General",
+    "difficulty": "medium",
+    "created_at": "2026-10-20T05:29:48",
+    "data": {
+      "questions": [
+        {
+          "question": "What are the differences between embedded systems and programing for embedded systems?",
+          "answer": "BUILDING PROCESS FOR EMBEDDED SYSTEMS Embedded systems programming is not substantially different from the programming you've done before. The only thing that has really changed is that you need to have an understanding of the target hardware platform",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "BUILDING PROCESS FOR EMBEDDED SYSTEMS\n\nBUILDING PROCESS FOR EMBEDDED SYSTEMS \uf071 Embedded systems programming is not substantially different from the programming you've done before. \uf071 The only thing that has really changed is that you need to have an understanding of the target hardware platform. Furthermore, each target hardware platform is unique. \uf071 Unfortunately, this uniqueness among hardware platforms leads to a lot of additional software complexity, and it's also the reason you'll need to be more aware of the software build process than ever before.\n\nBUILDING PROCESS FOR EMBEDDED SYSTEMS \uf071 When build tools run on the same system as the program they produce, they can make a lot of assumptions about the system. \uf071 This is typically not the case in embedded software development, where the build tools run on a host computer that differs from the target hardware platform. \uf071 Embedded software development tools, can rarely make assumptions about the target platform.\n\nBUILDING PROCESS FOR EMBEDDED SYSTEMS \uf071 Software Development is performed on a Host computer \uf0d8 Compiler, Assembler, Linker, Locator, Debugger \uf0d8 Produces executable binary image that will run on Target Embedded System\n\nPROCESS FOR DEVELOPING EMBEDDED SOFTWARE \uf071 To develop software for a General Purpose Computer \uf0d8 Create source file \uf0d8 Type in C code \uf0d8 Build: compile and link \uf0d8 Execute: load and run \uf071 To develop software for an embedded system \uf0d8 Create source file (on Host) \uf0d8 Type in C code (on Host) \uf0d8 Compile/Assemble: translate into machine code (on Host) \uf0d8 Link: combine all object files and libraries, resolve all symbols (on Host) \uf0d8 Locate: assign memory addresses to code and data (on Host) \uf0d8 Download: copy executable image into Target processor memory \uf0d8 Execute: reset Target processor\n\nPROCESS FOR DEVELOPING EMBEDDED SOFTWARE The Embedded Software Development Process",
+          "source": [
+            {
+              "page": 5,
+              "section": "General",
+              "chunk_id": 3,
+              "similarity": 0.6669
+            },
+            {
+              "page": 3,
+              "section": "BUILDING PROCESS FOR EMBEDDED SYSTEMS",
+              "chunk_id": 1,
+              "similarity": 0.644
+            },
+            {
+              "page": 7,
+              "section": "General",
+              "chunk_id": 6,
+              "similarity": 0.6346
+            },
+            {
+              "page": 10,
+              "section": "General",
+              "chunk_id": 16,
+              "similarity": 0.632
+            },
+            {
+              "page": 6,
+              "section": "General",
+              "chunk_id": 4,
+              "similarity": 0.5755
+            },
+            {
+              "page": 9,
+              "section": "General",
+              "chunk_id": 15,
+              "similarity": 0.5642
+            }
+          ]
+        },
+        {
+          "question": "What is a Cross Assembler?",
+          "answer": "A type of assembler that is designed to generate machine code for a different processor from the one on which the assembling itself runs.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "9. Assembler- converts Assembly Language \u2192 Machine Code 10.\n\nCross Assembler An assembler that runs on a host system but generates code for a different target processor. Example: Writing ARM code on a PC for an embedded board\n\nASSEMBLER \uf071 Assembler converts the assembly language code into an object file which is an binary file that contains set of machine-language instructions (opcodes) and data sections. \uf071 In short, the assembler generates a microcontroller architecture-specific machine code without absolute addresses. \uf071 Each processor has its own unique machine language, so you need to choose a appropriate assembler that produces programs for your specific target processor. \uf071 Cross-Assembler is a type of assembler that is designed to generate machine code for a different processor from the one on which the assembler itself runs. \uf071 Note that compilers nowadays can generate an object code without the need of an independent assembler.\n\nASSEMBLER \uf071 Your embedded application may have reference to built-in libraries and more than one source code file therefore, the assembler may generate multiple object files. \uf071 Note that the object file only contains the sections for static variables.\n\n20 ASSEMBLER\n\n\uf071 Linker Control File (LCF) also another name for this file is linker-script file, linker configuration file is responsible to inform the locator how to map the executable into proper addresses. \uf071 LCF defines physical memory layout (Flash/SRAM) of the target board and placement of the different program regions to produce a single executable binary file.",
+          "source": [
+            {
+              "page": 18,
+              "section": "General",
+              "chunk_id": 31,
+              "similarity": 0.7267
+            },
+            {
+              "page": 8,
+              "section": "General",
+              "chunk_id": 14,
+              "similarity": 0.6907
+            },
+            {
+              "page": 20,
+              "section": "20 ASSEMBLER",
+              "chunk_id": 35,
+              "similarity": 0.567
+            },
+            {
+              "page": 19,
+              "section": "General",
+              "chunk_id": 32,
+              "similarity": 0.4509
+            },
+            {
+              "page": 23,
+              "section": "General",
+              "chunk_id": 44,
+              "similarity": 0.4391
+            },
+            {
+              "page": 8,
+              "section": "9. Assembler- converts Assembly Language",
+              "chunk_id": 12,
+              "similarity": 0.4373
+            }
+          ]
+        },
+        {
+          "question": "What is the name of the program that debugs a source code?",
+          "answer": "DEBUGGING TOOLS REMOTE DEBUGGER Remote debuggers are one of the commonly used downloading and testing tools during development of embedded software It is used to monitor/control embedded SW. It is Used to download, execute and debug embedded software over a comm. link. In-Circuit Emulator (ICE) takes the place of the target processor. It contains a copy of target processor, plus RAM, ROM, and its own embedded software.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "Source-code Engineering Software (Tools used to analyze, modify, optimize, and maintain source code.) 3. RTOS 4.\n\n\uf0d8 Error handling: Errors are detect and reported to enable a programmer to debug a source program. 15\n\nDEBUGGING TOOLS\n\nDEBUGGING TOOLS REMOTE DEBUGGER \uf071 Remote debuggers are one of the commonly used downloading and testing tools during development of embedded software \uf071 It is used to monitor/control embedded SW. It is used to download, execute and debug embedded software over a comm.\n\nlink. \uf071 The program running on the host of a remote debugger has a user interface (GUI/Command-line) that looks just like other debugger \uf071 The front-end of the GUI debuggers contain several windows to show the active part of the source code, current register contents, and other relevant information about the executing program.\n\nDEBUGGING TOOLS IN-CIRCUIT EMULATOR (ICE) \uf071 In-Circuit Emulator (ICE) takes the place of the target processor. It contains a copy of target processor, plus RAM, ROM, and its own embedded software. \uf071 It allows you to examine the state of the processor while the program is running. It uses the remote debugger for human interface.",
+          "source": [
+            {
+              "page": 47,
+              "section": "General",
+              "chunk_id": 82,
+              "similarity": 0.6588
+            },
+            {
+              "page": 45,
+              "section": "DEBUGGING TOOLS",
+              "chunk_id": 78,
+              "similarity": 0.6468
+            },
+            {
+              "page": 15,
+              "section": "General",
+              "chunk_id": 26,
+              "similarity": 0.6461
+            },
+            {
+              "page": 47,
+              "section": "General",
+              "chunk_id": 81,
+              "similarity": 0.5569
+            },
+            {
+              "page": 8,
+              "section": "General",
+              "chunk_id": 8,
+              "similarity": 0.5562
+            },
+            {
+              "page": 51,
+              "section": "General",
+              "chunk_id": 89,
+              "similarity": 0.5188
+            }
+          ]
+        },
+        {
+          "question": "How are relocating programs done?",
+          "answer": "Change addresses already assigned to symbols. This will also involve patching up all references to reflect the newly assigned address. Relocation process involves following, a) Section Merging: The Linker then concatenates like-named sections from all the input object files. The combined sections (output sections) are usually given the same names as their input sections. Program addresses are adjusted to take account of the concatentation. b) Section placement: When a program is assembled each section is assumed to start from address 0. And thus, symbols are assigned values relative to the start of the section. When the final executable is created, the section is placed at some address X. All references to the symbols defined within the section, are incremented by X, so that they point to the new location. Step 1: Once the binary image is ready on the computer, the device programmer is connected to the computer. Step 2: The uP/uC or memory chip, usually the ROM which is supposed to contain",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "PROCESS FOR DEVELOPING EMBEDDED SOFTWARE Physical memory addresses must be assigned to the relative offsets within the re-locatable program in a process called relocation. All of the object files that result from the first step must be linked together to produce a single object file, called the re-locatable program. Each of the source files must be compiled or assembled into an object file SOURCE CODE INTO EXECUTABLE BINARY IMAGE\n\n22 LINKER 2. Relocation: Process of changing addresses already assigned to symbols. This will also involve patching up all references to reflect the newly assigned address.\n\nRelocation process involves following, a) Section Merging: The Linker then concatenates like-named sections from all the input object files. The combined sections (output sections) are usually given the same names as their input sections.\n\nProgram addresses are adjusted to take account of the concatenation. b) Section placement: When a program is assembled each section is assumed to start from address 0. And thus, symbols are assigned values relative to the start of the section.\n\nWhen the final executable is created, the section is placed at some address X. And all references to the symbols defined within the section, are incremented by X, so that they point to the new location.\n\nLOADING ON THE TARGET 1. Using a Device Programmer: \uf0d8 Step 1: Once the binary image is ready on the computer, the device programmer is connected to the computer. \uf0d8 Step 2: The uP/uC or memory chip, usually the ROM which is supposed to contain the binary image is placed on the proper socket on the device programmer. \uf0d8 Step 3: The device programmer contains a software interface through which the user selects the target uP/uC for which the binary image has to be downloaded. \uf0d8 Step 4: The Device programmer then transfers the binary image bit by bit to the chip.",
+          "source": [
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 39,
+              "similarity": 0.5221
+            },
+            {
+              "page": 22,
+              "section": "22 LINKER 2",
+              "chunk_id": 38,
+              "similarity": 0.4451
+            },
+            {
+              "page": 11,
+              "section": "General",
+              "chunk_id": 17,
+              "similarity": 0.4246
+            },
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 41,
+              "similarity": 0.4096
+            },
+            {
+              "page": 22,
+              "section": "General",
+              "chunk_id": 40,
+              "similarity": 0.3967
+            },
+            {
+              "page": 41,
+              "section": "General",
+              "chunk_id": 72,
+              "similarity": 0.3709
+            }
+          ]
+        },
+        {
+          "question": "What are the main features of the command shell?",
+          "answer": "MAKEFILE Manually entering individual compiler and linker commands on the command line becomes tiresome very quickly. In order to avoid this, a makefile can be used. A Makefile is commonly used in Unix and Unix-like systems, but they can also be used on other platforms with tools like GNU Make.",
+          "type": "Long Answer",
+          "difficulty": "medium",
+          "context": "7. Interpreter(Translates and executes code line-by-line.) 8. Compiler-software that translates a program from a high-level language into machine-understandable code.\n\nA token may be a keyword (while\u201f), an operator (*), an identifier (variable name), literal (10 or \u201cmy string\u201d), comment. \uf0d8 Syntax Analysis: Ensures that tokens are organised in the correct way, according to the rules of the language otherwise compiler will produce a syntax error. \uf0d8 Semantic analysis: Checks on the logical structure of the program to detect potential problems such as unused variables, uninitialized variables, etc. \uf0d8 Intermediate code generation: Intermediate representation of the final machine code is produced. \uf0d8 Code optimization: Code is optimized in order to run faster and efficiently by performing inline expansion of functions, dead code removal, loop unrolling, register allocation, etc. \uf0d8 Code generation: The optimized intermediate code is translated into assembly language for a specified machine architecture.\n\n27 MAKEFILE \uf071 Manually entering individual compiler and linker commands on the command line becomes tiresome very quickly. In order to avoid this, a makefile can be used. \uf071 A Makefile is a script file used in software development projects to automate the building and compilation of source code into executable programs or libraries. \uf071 Makefiles are associated with the \"make\" build automation tool, which reads the instructions from the Makefile and executes the necessary commands to build the project. \uf071 The make utility follows the rules in the makefile in order to automatically generate output files from a set of input source files. \uf071 Makefiles are commonly used in Unix and Unix-like systems, but they can also be used on other platforms with tools like GNU Make.\n\n\uf071 Once the tools are installed, the commands covered in the following sections are entered into a command shell. \uf071 For Windows users, the command shell is a Cygwin bash shell (Cygwin is a Unix environment for Windows); for Linux users, it is a regular command shell.\n\nDEBUGGING TOOLS\n\n- Reading/writing registers or data at specified address. \uf071 Disadvantage: inability to debug startup Code, code must execute from RAM, requires a target processor to run the final software package",
+          "source": [
+            {
+              "page": 28,
+              "section": "General",
+              "chunk_id": 53,
+              "similarity": 0.6743
+            },
+            {
+              "page": 48,
+              "section": "General",
+              "chunk_id": 85,
+              "similarity": 0.3803
+            },
+            {
+              "page": 27,
+              "section": "27 MAKEFILE",
+              "chunk_id": 51,
+              "similarity": 0.3293
+            },
+            {
+              "page": 15,
+              "section": "General",
+              "chunk_id": 25,
+              "similarity": 0.3136
+            },
+            {
+              "page": 8,
+              "section": "7. Interpreter",
+              "chunk_id": 11,
+              "similarity": 0.306
+            },
+            {
+              "page": 45,
+              "section": "DEBUGGING TOOLS",
+              "chunk_id": 78,
+              "similarity": 0.2856
+            }
+          ]
+        }
+      ],
+      "type": "Long Answer",
+      "difficulty": "medium",
+      "requested_questions": 5,
+      "generated_questions": 5,
+      "topic": null,
+      "pages_used": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "semantic_chunks_created": 192,
+      "retrieval_chunks_used": 6,
+      "retrieval": [
+        {
+          "page": 2,
+          "section": "General",
+          "chunk_id": 0,
+          "similarity": 1.0
+        },
+        {
+          "page": 3,
+          "section": "BUILDING PROCESS FOR EMBEDDED SYSTEMS",
+          "chunk_id": 1,
+          "similarity": 1.0
+        },
+        {
+          "page": 4,
+          "section": "General",
+          "chunk_id": 2,
+          "similarity": 1.0
+        },
+        {
+          "page": 5,
+          "section": "General",
+          "chunk_id": 3,
+          "similarity": 1.0
+        },
+        {
+          "page": 6,
+          "section": "General",
+          "chunk_id": 4,
+          "similarity": 1.0
+        },
+        {
+          "page": 6,
+          "section": "General",
+          "chunk_id": 5,
+          "similarity": 1.0
+        }
+      ],
+      "evaluation": {
+        "per_question": [
+          {
+            "question": "What are the differences between embedded systems and programing for embedded systems?",
+            "context_relevance": 0.6153,
+            "faithfulness": 0.78,
+            "answer_relevance": 0.7237
+          },
+          {
+            "question": "What is a Cross Assembler?",
+            "context_relevance": 0.6677,
+            "faithfulness": 0.637,
+            "answer_relevance": 0.6552
+          },
+          {
+            "question": "What is the name of the program that debugs a source code?",
+            "context_relevance": 0.6108,
+            "faithfulness": 0.8601,
+            "answer_relevance": 0.5422
+          },
+          {
+            "question": "How are relocating programs done?",
+            "context_relevance": 0.4956,
+            "faithfulness": 0.8851,
+            "answer_relevance": 0.5929
+          },
+          {
+            "question": "What are the main features of the command shell?",
+            "context_relevance": 0.3713,
+            "faithfulness": 0.5035,
+            "answer_relevance": 0.2552
+          }
+        ],
+        "overall": {
+          "context_relevance": 0.5521,
+          "faithfulness": 0.7331,
+          "answer_relevance": 0.5539,
+          "rag_score": 0.613
+        }
+      }
+    }
   }
 ]

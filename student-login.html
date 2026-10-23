@@ -7,45 +7,94 @@
 :root{--ink:#332b38;--muted:#8d8190;--cream:#fbf4ec;--lav:#e7dbe5;--purple:#75586f;--bad:#a34f5f}*{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4eee8;color:var(--ink);font-family:'DM Sans',sans-serif}
 button,input{font:inherit}
-.card{width:100%;max-width:380px;background:var(--lav);border-radius:18px;padding:30px 26px;margin:20px}
+.card{width:100%;max-width:400px;background:var(--lav);border-radius:18px;padding:30px 26px;margin:20px}
 .brand{font:800 22px 'Plus Jakarta Sans';letter-spacing:-1px;margin:0}
 .brand span{color:var(--purple);font-weight:700;font-size:11px;margin-left:8px;text-transform:uppercase;vertical-align:middle}
-.subtitle{color:var(--muted);font-size:13px;margin-top:6px}
-label{display:block;font-size:11px;font-weight:700;color:#827581;margin-top:18px}
-.field{display:block;width:100%;padding:11px;margin-top:8px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}
+.subtitle{color:var(--muted);font-size:13px;margin:6px 0 0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#dccbd9;border-radius:11px;padding:4px;margin-top:20px}
+.tab{border:0;background:transparent;border-radius:8px;padding:9px;font-weight:700;font-size:12px;color:#7d6a79;cursor:pointer}
+.tab.active{background:#fbf4ec;color:var(--ink)}
+label{display:block;font-size:11px;font-weight:700;color:#827581;margin-top:16px}
+.field{display:block;width:100%;padding:11px;margin-top:7px;border:1px solid #d2c0cf;border-radius:9px;background:#fff8f5;color:var(--ink)}
 .button{width:100%;border:0;border-radius:10px;padding:12px;color:white;background:var(--purple);cursor:pointer;font-weight:700;font-size:13px;margin-top:20px}
 .button:disabled{opacity:.5;cursor:not-allowed}
-.error{color:var(--bad);font-size:12px;margin-top:12px}
+.error{color:var(--bad);font-size:12px;margin:12px 0 0;min-height:16px;line-height:1.4}
+.note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:14px}
 .footer-link{display:block;text-align:center;margin-top:18px;color:var(--purple);font-size:11px;font-weight:700;text-decoration:none}
-.note{color:var(--muted);font-size:10px;line-height:1.5;margin-top:14px}
+[hidden]{display:none}
 </style></head>
 <body>
-<form class="card" id="login-form">
+<div class="card">
     <h1 class="brand">Question Lab <span>Student</span></h1>
-    <p class="subtitle">Enter your name to take an exam or practice with Quiz Mode.</p>
-    <label for="name">Your name</label>
-    <input id="name" class="field" autocomplete="name" placeholder="e.g. Jordan Lee" required />
-    <button id="submit" class="button" type="submit">Continue →</button>
-    <p id="error" class="error"></p>
-    <p class="note">This just remembers your name for this session so your submissions are attributed to you -- there's no separate password.</p>
+    <p class="subtitle">Sign in to take exams and practice with Quiz Mode.</p>
+
+    <div class="tabs" role="tablist">
+        <button class="tab active" id="tab-login" type="button" role="tab">Log in</button>
+        <button class="tab" id="tab-register" type="button" role="tab">Create password</button>
+    </div>
+
+    <form id="login-form">
+        <label for="login-email">Email</label>
+        <input id="login-email" class="field" type="email" autocomplete="username" required />
+        <label for="login-password">Password</label>
+        <input id="login-password" class="field" type="password" autocomplete="current-password" required />
+        <button class="button" type="submit">Log in</button>
+        <p id="login-error" class="error"></p>
+        <p class="note">First time here? Use <strong>Create password</strong> with the email address your instructor approved.</p>
+    </form>
+
+    <form id="register-form" hidden>
+        <label for="reg-email">Approved email</label>
+        <input id="reg-email" class="field" type="email" autocomplete="username" required />
+        <label for="reg-name">Your name</label>
+        <input id="reg-name" class="field" autocomplete="name" placeholder="e.g. Jordan Lee" required />
+        <label for="reg-password">Choose a password (at least 8 characters)</label>
+        <input id="reg-password" class="field" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+        <label for="reg-confirm">Confirm password</label>
+        <input id="reg-confirm" class="field" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+        <button class="button" type="submit">Create password &amp; continue</button>
+        <p id="reg-error" class="error"></p>
+        <p class="note">You can only create a password for an email address your instructor has approved. Already created one? Switch to <strong>Log in</strong>.</p>
+    </form>
+
     <a class="footer-link" href="/login">Instructor? Admin login →</a>
-</form>
+</div>
 <script>
-const form=document.getElementById('login-form'),submitButton=document.getElementById('submit'),error=document.getElementById('error');
-form.addEventListener('submit', async event => {
-    event.preventDefault();
-    error.textContent='';
-    submitButton.disabled=true;submitButton.textContent='Continuing...';
+const loginForm=document.getElementById('login-form'),registerForm=document.getElementById('register-form');
+const tabLogin=document.getElementById('tab-login'),tabRegister=document.getElementById('tab-register');
+function showTab(which){
+    const register=which==='register';
+    loginForm.hidden=register;registerForm.hidden=!register;
+    tabLogin.classList.toggle('active',!register);tabRegister.classList.toggle('active',register);
+}
+tabLogin.addEventListener('click',()=>showTab('login'));
+tabRegister.addEventListener('click',()=>showTab('register'));
+if(location.hash==='#register')showTab('register');
+
+// Only follow same-site paths; ignore anything like https://elsewhere.com or //elsewhere.com
+function nextUrl(){const raw=new URLSearchParams(location.search).get('next')||'/student';return(raw.startsWith('/')&&!raw.startsWith('//'))?raw:'/student'}
+
+async function submitForm(form,errorId,url,body,idleLabel){
+    const error=document.getElementById(errorId),button=form.querySelector('button[type=submit]');
+    error.textContent='';button.disabled=true;button.textContent='Please wait...';
     try{
-        const response=await fetch('/student-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_name:document.getElementById('name').value})});
-        const payload=await response.json();
-        if(!response.ok)throw new Error(payload.detail||'Could not continue.');
-        const next=new URLSearchParams(location.search).get('next')||'/student';
-        window.location.href=next;
-    }catch(e){
-        error.textContent=e.message;
-        submitButton.disabled=false;submitButton.textContent='Continue →';
-    }
+        const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const payload=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(payload.detail||'Something went wrong.');
+        window.location.href=nextUrl();
+    }catch(e){error.textContent=e.message;button.disabled=false;button.innerHTML=idleLabel}
+}
+
+loginForm.addEventListener('submit',event=>{
+    event.preventDefault();
+    submitForm(loginForm,'login-error','/student-login',{email:document.getElementById('login-email').value,password:document.getElementById('login-password').value},'Log in');
+});
+registerForm.addEventListener('submit',event=>{
+    event.preventDefault();
+    const error=document.getElementById('reg-error');
+    const password=document.getElementById('reg-password').value;
+    if(password!==document.getElementById('reg-confirm').value){error.textContent='The two passwords don\u2019t match.';return}
+    submitForm(registerForm,'reg-error','/student-register',{email:document.getElementById('reg-email').value,name:document.getElementById('reg-name').value,password},'Create password &amp; continue');
 });
 </script>
 </body>

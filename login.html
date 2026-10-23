@@ -39,7 +39,7 @@ form.addEventListener('submit', async event => {
         const response=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('username').value,password:document.getElementById('password').value})});
         const payload=await response.json();
         if(!response.ok)throw new Error(payload.detail||'Login failed.');
-        const next=new URLSearchParams(location.search).get('next')||'/';
+        const raw=new URLSearchParams(location.search).get('next')||'/';const next=(raw.startsWith('/')&&!raw.startsWith('//'))?raw:'/';
         window.location.href=next;
     }catch(e){
         error.textContent=e.message;

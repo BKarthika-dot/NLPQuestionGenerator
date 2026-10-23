@@ -7,11 +7,14 @@
 # -> final question + system-wide RAG evaluation score
 # ============================================================
 
+import hashlib
 import re
 import logging
 from pathlib import Path
+from threading import Lock
 from typing import List, Dict, Optional, Any
 
+import numpy as np
 import torch
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -19,7 +22,7 @@ from langchain_core.documents import Document
 
 from sentence_transformers import SentenceTransformer
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification
 
 logger = logging.getLogger("question-lab.backend")
 
@@ -85,6 +88,69 @@ MIN_QUESTION_CONTEXT_RELEVANCE = 0.30
 
 QUESTION_TYPE = "Long Answer"
 DIFFICULTIES = {"easy", "medium", "hard"}
+
+# ------------------------------------------------------------
+# Grounded answer grading (NLI cross-encoder + sentence embeddings)
+#
+# Nothing in this grader looks at surface wording: no keyword overlap, no
+# n-gram/ROUGE/BLEU, no TF-IDF. Every decision is made either by an NLI
+# cross-encoder (does text A entail / contradict text B?) or by cosine
+# similarity between sentence embeddings, so a correct paraphrase scores the
+# same as a verbatim copy, and a fluent answer that says the opposite does not.
+# ------------------------------------------------------------
+
+# Tried in order. The first is the stronger model; its tokenizer needs
+# `pip install sentencepiece`. If it can't load for any reason, the second
+# (plain WordPiece tokenizer, no extra dependency) is used instead.
+NLI_MODEL_CANDIDATES = [
+    "cross-encoder/nli-deberta-v3-small",
+    "cross-encoder/nli-MiniLM2-L6-H768",
+]
+NLI_MAX_TOKENS = 320
+NLI_BATCH_SIZE = 16
+
+# Final grade (0-1) at/above which an answer counts as correct.
+GRADE_CORRECT_THRESHOLD = 0.60
+
+# How many source sentences are offered to the NLI model as evidence for one claim.
+EVIDENCE_TOP_K = 3
+MAX_CONTEXT_SENTENCES = 40
+MAX_KEY_POINTS = 6
+MAX_STUDENT_CLAIMS = 8
+MAX_STUDENT_CHARS = 2500
+PROFILE_CACHE_SIZE = 512
+
+# A reference-answer sentence only becomes a graded "key point" if the source
+# text entails it at least this strongly -- the generated reference can be
+# wrong, the source text is the ground truth.
+KEYPOINT_GROUNDING_MIN = 0.40
+KEYPOINT_DEDUP_SIM = 0.92
+
+# Student sentences less related than this to both the question and the
+# source are treated as filler: they neither earn nor lose marks.
+CLAIM_RELEVANCE_MIN = 0.30
+# Skip running NLI on pairs that share almost no meaning (saves compute).
+NLI_MIN_RELEVANCE = 0.25
+# A contradiction only counts between texts that are actually about the same thing.
+CONTRADICTION_MIN_RELEVANCE = 0.35
+CONTRADICTION_THRESHOLD = 0.60
+CONTRADICTION_PENALTY = 0.75
+# If some source sentence clearly entails a statement, the statement is supported.
+# Contradiction signals from OTHER sentences (typically a near-identical sentence
+# about a different subject, e.g. "unsupervised" vs "supervised") are then ignored.
+ENTAILMENT_OVERRIDE = 0.50
+
+# Partial credit: a key point the student paraphrased closely but did not fully
+# entail earns up to this fraction of a mark, scaled by embedding similarity.
+# It can never override a contradiction.
+SOFT_CREDIT_WEIGHT = 0.50
+SOFT_SIM_FLOOR = 0.50
+SOFT_SIM_CEIL = 0.90
+
+# How much the "is every claim backed by the source" check can lower a grade.
+SUPPORT_WEIGHT = 0.30
+# An answer this close to the question (and not longer) is just restating it.
+ECHO_SIMILARITY = 0.92
 
 print(f"[INFO] Device: {DEVICE}")
 
@@ -645,6 +711,399 @@ def evaluate_rag(qa_records: List[Dict[str, Any]], embedder: SemanticEmbedder) -
 
 
 # ============================================================
+# 12b. GROUNDED ANSWER GRADING
+# ============================================================
+
+class NLIModel:
+    """
+    Natural-language-inference cross-encoder. Given a (premise, hypothesis)
+    pair it reads BOTH texts together and returns the probability that the
+    premise entails, contradicts, or is neutral to the hypothesis. Because it
+    attends across the pair, it sees negation, antonyms and swapped roles
+    that a bi-encoder cosine score cannot ("uses labeled data" vs "uses
+    unlabeled data" are near-identical embeddings but a clear contradiction).
+    """
+
+    def __init__(self, candidates: List[str] = NLI_MODEL_CANDIDATES):
+        errors = []
+        for name in candidates:
+            try:
+                logger.info("Loading NLI cross-encoder: %s", name)
+                print(f"[INFO] Loading NLI cross-encoder: {name}")
+                tokenizer = AutoTokenizer.from_pretrained(name)
+                model = AutoModelForSequenceClassification.from_pretrained(name).to(DEVICE)
+                model.eval()
+                label_index = self._map_labels(model.config.id2label)
+            except Exception as exc:  # try the next candidate
+                errors.append(f"{name}: {exc}")
+                logger.warning("NLI model %s unavailable: %s", name, exc)
+                continue
+            self.name, self.tokenizer, self.model, self.label_index = name, tokenizer, model, label_index
+            print(f"[INFO] NLI cross-encoder loaded: {name}")
+            break
+        else:
+            raise RuntimeError(
+                "Could not load any NLI cross-encoder model. "
+                "For the default model run `pip install sentencepiece`. Details: " + " | ".join(errors)
+            )
+
+    @staticmethod
+    def _map_labels(id2label: Dict[Any, str]) -> Dict[str, int]:
+        # Read the label order from the model's own config instead of
+        # hardcoding it -- different NLI checkpoints order them differently.
+        mapping = {}
+        for index, label in id2label.items():
+            lowered = str(label).lower()
+            for key, needle in (("entailment", "entail"), ("contradiction", "contradict"), ("neutral", "neutral")):
+                if needle in lowered:
+                    mapping[key] = int(index)
+        if set(mapping) != {"entailment", "contradiction", "neutral"}:
+            raise RuntimeError(f"Unexpected NLI label set: {id2label}")
+        return mapping
+
+    def predict(self, pairs: List[Any]) -> List[Dict[str, float]]:
+        """pairs: [(premise, hypothesis), ...] -> [{entailment, contradiction, neutral}, ...]"""
+        results: List[Dict[str, float]] = []
+        if not pairs:
+            return results
+        with torch.no_grad():
+            for start in range(0, len(pairs), NLI_BATCH_SIZE):
+                batch = pairs[start:start + NLI_BATCH_SIZE]
+                encoded = self.tokenizer(
+                    [premise for premise, _ in batch],
+                    [hypothesis for _, hypothesis in batch],
+                    padding=True,
+                    truncation=True,
+                    max_length=NLI_MAX_TOKENS,
+                    return_tensors="pt",
+                )
+                encoded = {key: value.to(DEVICE) for key, value in encoded.items()}
+                probabilities = torch.softmax(self.model(**encoded).logits, dim=-1).cpu().numpy()
+                for row in probabilities:
+                    results.append({name: float(row[index]) for name, index in self.label_index.items()})
+        return results
+
+
+class AnswerGrader:
+    """
+    Grades a student's answer against the SOURCE TEXT the question came from,
+    not just against the generated reference answer (which can be incomplete
+    or wrong).
+
+    1. Key points. The reference answer is split into sentences; each one is
+       kept as a graded "key point" only if the source passage entails it.
+       Unsupported (hallucinated) reference sentences are dropped. This is
+       computed once per question and cached.
+    2. Coverage. For each key point: does the student's answer entail it?
+       Full entailment = full credit; a close paraphrase that doesn't fully
+       entail it earns partial credit from embedding similarity; if the
+       student's text contradicts it, it earns nothing.
+    3. Support. Each on-topic student sentence is checked against the most
+       relevant source sentences (retrieve with embeddings, verify with NLI),
+       so correct statements the reference omitted are not treated as errors
+       and statements the source contradicts are caught.
+    4. Grade = coverage x (1 - SUPPORT_WEIGHT + SUPPORT_WEIGHT x support),
+       scaled down hard if anything the student wrote is contradicted.
+    """
+
+    def __init__(self, embedder: "SemanticEmbedder"):
+        self.embedder = embedder
+        self.nli = NLIModel()
+        self._profiles: Dict[str, Dict[str, Any]] = {}
+        self._profiles_lock = Lock()
+
+    # ---------------- small helpers ----------------
+
+    def _embed(self, texts: List[str]) -> np.ndarray:
+        if not texts:
+            return np.zeros((0, 384), dtype=np.float32)
+        embeddings = self.embedder.encode(texts)
+        if hasattr(embeddings, "detach"):
+            embeddings = embeddings.detach().cpu().numpy()
+        return np.asarray(embeddings, dtype=np.float32)
+
+    def _nli(self, pairs: List[Any], memo: Dict[Any, Dict[str, float]]) -> List[Dict[str, float]]:
+        """Batched NLI with a memo, so an identical (premise, hypothesis) pair is only ever scored once."""
+        todo = [pair for pair in dict.fromkeys(pairs) if pair not in memo]
+        for pair, probabilities in zip(todo, self.nli.predict(todo)):
+            memo[pair] = probabilities
+        return [memo[pair] for pair in pairs]
+
+    @staticmethod
+    def _split(text: str, cap: int) -> List[str]:
+        parts: List[str] = []
+        for sentence in split_into_sentences(text or ""):
+            parts.extend(piece.strip() for piece in re.split(r"\s*;\s*|\n+", sentence) if piece.strip())
+        parts = [piece for piece in parts if len(piece.split()) >= 2] or parts
+        return parts[:cap]
+
+    @staticmethod
+    def _premises(sentences: List[str], similarities: np.ndarray, k: int) -> List[Any]:
+        """
+        The k sentences most similar to a claim, offered as individual premises
+        plus (when k > 1) their concatenation in document order -- so a claim
+        that needs two neighbouring source sentences can still be verified.
+        Returns [(premise_text, relevance_similarity), ...].
+        """
+        k = min(k, len(sentences))
+        top = [int(i) for i in np.argsort(-similarities)[:k]]
+        premises = [(sentences[i], float(similarities[i])) for i in top]
+        if k > 1:
+            joined = " ".join(sentences[i] for i in sorted(top))
+            premises.append((joined, float(similarities[top[0]])))
+        return premises
+
+    def _dedupe(self, sentences: List[str]) -> List[str]:
+        if len(sentences) < 2:
+            return sentences
+        embeddings = self._embed(sentences)
+        kept: List[int] = []
+        for i in range(len(sentences)):
+            if all(float(embeddings[i] @ embeddings[j]) < KEYPOINT_DEDUP_SIM for j in kept):
+                kept.append(i)
+        return [sentences[i] for i in kept]
+
+    @staticmethod
+    def _empty_result(note: str) -> Dict[str, Any]:
+        return {
+            "similarity": 0.0,
+            "score": 0,
+            "correct": False,
+            "threshold": GRADE_CORRECT_THRESHOLD,
+            "coverage": 0.0,
+            "support": 0.0,
+            "contradiction": 0.0,
+            "embedding_similarity": 0.0,
+            "grounded": False,
+            "key_points": [],
+            "missing_points": [],
+            "contradicted_claims": [],
+            "unsupported_claims": [],
+            "ungrounded_reference_points": [],
+            "note": note,
+        }
+
+    # ---------------- per-question profile (cached) ----------------
+
+    def _profile(self, question: str, reference: str, context: str) -> Dict[str, Any]:
+        key = hashlib.sha1("\x1f".join((question, reference, context)).encode("utf-8")).hexdigest()
+        with self._profiles_lock:
+            cached = self._profiles.get(key)
+        if cached is not None:
+            return cached
+        profile = self._build_profile(question, reference, context)
+        with self._profiles_lock:
+            if len(self._profiles) >= PROFILE_CACHE_SIZE:
+                self._profiles.pop(next(iter(self._profiles)))
+            self._profiles[key] = profile
+        return profile
+
+    def _build_profile(self, question: str, reference: str, context: str) -> Dict[str, Any]:
+        context_sentences = self._split(context, MAX_CONTEXT_SENTENCES)
+        reference_sentences = self._split(reference, MAX_KEY_POINTS) or ([reference] if reference else [])
+        grounded = bool(context_sentences)
+        dropped: List[Dict[str, Any]] = []
+        fallback_used = False
+
+        if grounded:
+            context_embeddings = self._embed(context_sentences)
+            kept: List[str] = []
+            if reference_sentences:
+                reference_embeddings = self._embed(reference_sentences)
+                similarities = reference_embeddings @ context_embeddings.T
+                pairs, owners = [], []
+                for r, sentence in enumerate(reference_sentences):
+                    for premise, _ in self._premises(context_sentences, similarities[r], EVIDENCE_TOP_K):
+                        pairs.append((premise, sentence))
+                        owners.append(r)
+                best_support = [0.0] * len(reference_sentences)
+                for owner, probabilities in zip(owners, self._nli(pairs, {})):
+                    best_support[owner] = max(best_support[owner], probabilities["entailment"])
+                for sentence, support in zip(reference_sentences, best_support):
+                    if support >= KEYPOINT_GROUNDING_MIN:
+                        kept.append(sentence)
+                    else:
+                        dropped.append({"text": sentence, "support": round(support, 3)})
+
+            if not kept:
+                # Nothing in the reference is backed by the source (or there is
+                # no reference): fall back to the source sentences that best
+                # answer the question, since the source is the ground truth.
+                fallback_used = True
+                question_embedding = self._embed([question or reference])[0]
+                scores = context_embeddings @ question_embedding
+                top = sorted(int(i) for i in np.argsort(-scores)[:2])
+                kept = [context_sentences[i] for i in top]
+            evidence, evidence_embeddings = context_sentences, context_embeddings
+        else:
+            # Older material saved without its source passage: grade against the
+            # reference answer alone (still semantic, just not source-grounded).
+            kept = reference_sentences
+            evidence = reference_sentences
+            evidence_embeddings = self._embed(reference_sentences)
+
+        key_points = self._dedupe(kept)
+        profile = {
+            "key_points": key_points,
+            "key_point_embeddings": self._embed(key_points),
+            "evidence": evidence,
+            "evidence_embeddings": evidence_embeddings,
+            "grounded": grounded,
+            "fallback_used": fallback_used,
+            "dropped": dropped,
+        }
+        logger.info(
+            "grading profile built: grounded=%s key_points=%d dropped_unsupported=%d fallback=%s",
+            grounded, len(key_points), len(dropped), fallback_used,
+        )
+        return profile
+
+    # ---------------- grading ----------------
+
+    def grade(self, question: str, reference_answer: str, student_answer: str, context: str = "") -> Dict[str, Any]:
+        question = (question or "").strip()
+        reference = re.sub(r"\s+", " ", reference_answer or "").strip()
+        context = (context or "").strip()
+        student = re.sub(r"\s+", " ", student_answer or "").strip()[:MAX_STUDENT_CHARS]
+
+        if not student:
+            return self._empty_result("No answer was given.")
+
+        profile = self._profile(question, reference, context)
+        key_points = profile["key_points"]
+        if not key_points:
+            return self._empty_result("No reference or source text was available to grade against.")
+
+        claims = self._split(student, MAX_STUDENT_CLAIMS) or [student]
+        claim_embeddings = self._embed(claims)
+        whole_embedding = claim_embeddings if len(claims) == 1 else self._embed([student])
+        question_embedding = self._embed([question])[0] if question else None
+        reference_embedding = self._embed([reference])[0] if reference else None
+        embedding_similarity = float(whole_embedding[0] @ reference_embedding) if reference_embedding is not None else 0.0
+
+        if (
+            question_embedding is not None
+            and float(whole_embedding[0] @ question_embedding) >= ECHO_SIMILARITY
+            and len(student.split()) <= len(question.split()) + 3
+        ):
+            result = self._empty_result("The answer only restates the question.")
+            result["embedding_similarity"] = round(embedding_similarity, 4)
+            return result
+
+        memo: Dict[Any, Dict[str, float]] = {}
+
+        # ---- coverage: is each key point entailed by what the student wrote? ----
+        premise_texts = list(claims)
+        premise_embeddings = claim_embeddings
+        whole_index = None
+        if len(claims) > 1:
+            # Also try the whole answer as one premise, since a key point can be
+            # spread across several of the student's sentences.
+            premise_texts.append(student)
+            premise_embeddings = np.vstack([claim_embeddings, whole_embedding])
+            whole_index = len(premise_texts) - 1
+
+        key_point_embeddings = profile["key_point_embeddings"]
+        premise_vs_point = premise_embeddings @ key_point_embeddings.T  # [premises, key points]
+
+        pairs, owners = [], []
+        for k, point in enumerate(key_points):
+            for p, premise in enumerate(premise_texts):
+                if p == whole_index or premise_vs_point[p, k] >= NLI_MIN_RELEVANCE:
+                    pairs.append((premise, point))
+                    owners.append((k, p))
+
+        entailment = [0.0] * len(key_points)
+        point_contradiction = [0.0] * len(key_points)
+        for (k, p), probabilities in zip(owners, self._nli(pairs, memo)):
+            entailment[k] = max(entailment[k], probabilities["entailment"])
+            if premise_vs_point[p, k] >= CONTRADICTION_MIN_RELEVANCE:
+                point_contradiction[k] = max(point_contradiction[k], probabilities["contradiction"])
+
+        for k in range(len(key_points)):
+            if entailment[k] >= ENTAILMENT_OVERRIDE:
+                point_contradiction[k] = 0.0
+
+        closeness = np.clip(
+            (premise_vs_point.max(axis=0) - SOFT_SIM_FLOOR) / (SOFT_SIM_CEIL - SOFT_SIM_FLOOR), 0.0, 1.0
+        )
+        point_coverage = []
+        for k in range(len(key_points)):
+            if point_contradiction[k] >= CONTRADICTION_THRESHOLD:
+                point_coverage.append(0.0)
+            else:
+                point_coverage.append(max(entailment[k], SOFT_CREDIT_WEIGHT * float(closeness[k])))
+
+        # ---- support: is each on-topic claim backed by the source? ----
+        evidence = profile["evidence"]
+        evidence_embeddings = profile["evidence_embeddings"]
+        claim_vs_evidence = claim_embeddings @ evidence_embeddings.T
+        claim_vs_question = claim_embeddings @ question_embedding if question_embedding is not None else np.zeros(len(claims))
+
+        pairs, owners, relevant = [], [], []
+        for c, claim in enumerate(claims):
+            if max(float(claim_vs_evidence[c].max()), float(claim_vs_question[c])) < CLAIM_RELEVANCE_MIN:
+                continue  # filler: neither rewarded nor penalised
+            relevant.append(c)
+            for premise, relevance in self._premises(evidence, claim_vs_evidence[c], EVIDENCE_TOP_K):
+                pairs.append((premise, claim))
+                owners.append((c, relevance))
+
+        claim_support = {c: 0.0 for c in relevant}
+        claim_contradiction = {c: 0.0 for c in relevant}
+        for (c, relevance), probabilities in zip(owners, self._nli(pairs, memo)):
+            claim_support[c] = max(claim_support[c], probabilities["entailment"])
+            if relevance >= CONTRADICTION_MIN_RELEVANCE:
+                claim_contradiction[c] = max(claim_contradiction[c], probabilities["contradiction"])
+
+        for c in relevant:
+            if claim_support[c] >= ENTAILMENT_OVERRIDE:
+                claim_contradiction[c] = 0.0
+
+        # ---- combine ----
+        coverage = float(np.mean(point_coverage))
+        support = float(np.mean(list(claim_support.values()))) if claim_support else 0.0
+        contradiction = max(point_contradiction + list(claim_contradiction.values()) + [0.0])
+        contradicted = contradiction >= CONTRADICTION_THRESHOLD
+        penalty_factor = (1.0 - CONTRADICTION_PENALTY * contradiction) if contradicted else 1.0
+        quality = coverage * ((1.0 - SUPPORT_WEIGHT) + SUPPORT_WEIGHT * support) * penalty_factor
+        quality = float(min(1.0, max(0.0, quality)))
+
+        return {
+            # Kept under the original keys so every existing page keeps working.
+            # `similarity` is now the grounded grade (0-1), so score == round(similarity * 10)
+            # and correct == (similarity >= threshold), exactly as before.
+            "similarity": round(quality, 4),
+            "score": int(round(quality * 10)),
+            "correct": quality >= GRADE_CORRECT_THRESHOLD,
+            "threshold": GRADE_CORRECT_THRESHOLD,
+            # New, explainable components.
+            "coverage": round(coverage, 4),
+            "support": round(support, 4),
+            "contradiction": round(contradiction, 4),
+            "embedding_similarity": round(embedding_similarity, 4),
+            "grounded": profile["grounded"],
+            "key_points": [
+                {
+                    "text": point,
+                    "coverage": round(point_coverage[k], 3),
+                    "entailment": round(entailment[k], 3),
+                    "contradicted": point_contradiction[k] >= CONTRADICTION_THRESHOLD,
+                }
+                for k, point in enumerate(key_points)
+            ],
+            "missing_points": [point for k, point in enumerate(key_points) if point_coverage[k] < 0.5],
+            "contradicted_claims": [claims[c] for c, v in claim_contradiction.items() if v >= CONTRADICTION_THRESHOLD],
+            "unsupported_claims": [
+                claims[c] for c, v in claim_support.items()
+                if v < 0.30 and claim_contradiction[c] < CONTRADICTION_THRESHOLD
+            ],
+            "ungrounded_reference_points": profile["dropped"],
+            "note": "",
+        }
+
+
+# ============================================================
 # 13. PIPELINE
 # ============================================================
 
@@ -657,6 +1116,7 @@ class QuestionGeneratorPipeline:
         self.embedder = SemanticEmbedder()
         self.chunker = SemanticChunker(self.embedder)
         self.generator = QuestionGenerator()
+        self.grader = AnswerGrader(self.embedder)
 
         print("==========================================")
         print(" Pipeline ready")
@@ -981,3 +1441,13 @@ def generate_questions(
         difficulty=difficulty,
         num_questions=num_questions,
     )
+
+
+def grade_answer(
+    question: str,
+    reference_answer: str,
+    student_answer: str,
+    context: str = "",
+) -> Dict[str, Any]:
+    """Grade one student answer, grounded in the question's source passage (`context`)."""
+    return pipeline.grader.grade(question, reference_answer, student_answer, context)

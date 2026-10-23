@@ -1,3 +1,4 @@
+import hashlib
 import hmac
 import json
 import io
@@ -6,11 +7,12 @@ import os
 import re
 import secrets
 import shutil
+import time
 import traceback
 import uuid
 from datetime import datetime
 from pathlib import Path
-from threading import Lock
+from threading import Lock, RLock
 from typing import List, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
@@ -26,7 +28,7 @@ from xml.sax.saxutils import escape as escape_xml
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("question-lab")
 
-from backend import DIFFICULTIES, generate_questions, load_pdf, pipeline
+from backend import DIFFICULTIES, generate_questions, load_pdf, pipeline, grade_answer, GRADE_CORRECT_THRESHOLD
 
 app = FastAPI(
     title="Automatic Question Generator",
@@ -89,8 +91,22 @@ def current_admin(request: Request) -> bool:
     return bool(request.session.get("is_admin"))
 
 
-def current_student_name(request: Request) -> Optional[str]:
-    return request.session.get("student_name")
+def current_student(request: Request) -> Optional[dict]:
+    """The logged-in student's record, or None.
+
+    Re-checked against the approved list on EVERY request, not just at
+    login -- so removing a student or resetting their password takes effect
+    immediately instead of whenever their cookie happens to expire.
+    """
+    email = request.session.get("student_email")
+    if not email:
+        return None
+    record = find_student(email)
+    if not record or record.get("status") != "registered":
+        request.session.pop("student_email", None)
+        request.session.pop("student_name", None)
+        return None
+    return {"email": record["email"], "name": record.get("name") or record["email"]}
 
 
 def require_admin_api(request: Request) -> None:
@@ -98,15 +114,15 @@ def require_admin_api(request: Request) -> None:
         raise HTTPException(status_code=401, detail="Admin login required.")
 
 
-def require_student_api(request: Request) -> str:
-    name = current_student_name(request)
-    if not name:
+def require_student_api(request: Request) -> dict:
+    student = current_student(request)
+    if not student:
         raise HTTPException(status_code=401, detail="Student login required.")
-    return name
+    return student
 
 
 def require_any_login_api(request: Request) -> None:
-    if not current_admin(request) and not current_student_name(request):
+    if not current_admin(request) and not current_student(request):
         raise HTTPException(status_code=401, detail="Login required.")
 
 
@@ -115,13 +131,32 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 MATERIALS_FILE = UPLOAD_DIR / "materials.json"
 EXAMS_FILE = UPLOAD_DIR / "exams.json"
 SUBMISSIONS_FILE = UPLOAD_DIR / "submissions.json"
+STUDENTS_FILE = UPLOAD_DIR / "students.json"
 JOBS = {}
 JOBS_LOCK = Lock()
 EXAMS_LOCK = Lock()
 SUBMISSIONS_LOCK = Lock()
 JOB_STAGES = ["uploaded", "cleaning", "chunking", "embedding", "generating", "done"]
-QUIZ_CORRECT_THRESHOLD = 0.75
+QUIZ_CORRECT_THRESHOLD = GRADE_CORRECT_THRESHOLD
 EXAM_STATUSES = {"open", "closed"}
+
+# Student accounts: an admin pre-approves email addresses ("invited"); the
+# student then sets their own password for that address ("registered").
+STUDENTS_LOCK = RLock()
+EMAIL_FULL_RE = re.compile(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$")
+PBKDF2_ITERATIONS = 600_000  # OWASP's current recommendation for PBKDF2-HMAC-SHA256
+MIN_PASSWORD_LENGTH = 8
+MAX_PASSWORD_LENGTH = 128  # stops someone submitting a megabyte "password" to burn CPU hashing it
+MAX_EMAILS_PER_REQUEST = 500
+DUMMY_SALT = secrets.token_bytes(16)
+
+# Failed-login throttling. In-memory, so it resets when the server restarts
+# and isn't shared between multiple worker processes -- fine for a single
+# uvicorn process, not a substitute for a real rate limiter in production.
+FAILED_LOGINS = {}
+FAILED_LOGINS_LOCK = Lock()
+MAX_FAILED_LOGINS = 5
+LOGIN_WINDOW_SECONDS = 300
 
 
 class AnswerEvaluationRequest(BaseModel):
@@ -165,24 +200,36 @@ class AdminLoginRequest(BaseModel):
 
 
 class StudentLoginRequest(BaseModel):
-    student_name: str
+    email: str
+    password: str
+
+
+class StudentRegisterRequest(BaseModel):
+    email: str
+    name: str = ""
+    password: str
+
+
+class AddStudentsRequest(BaseModel):
+    emails: str
 
 
 def find_material(material_id):
     return next((item for item in read_materials() if item["id"] == material_id), None)
 
 
-def compare_answers(expected_answer, student_answer):
-    expected_embedding = pipeline.embedder.encode([expected_answer])[0]
-    student_embedding = pipeline.embedder.encode([student_answer])[0]
-    similarity = float(pipeline.embedder.similarity(student_embedding, expected_embedding).item())
-    similarity = max(-1.0, min(1.0, similarity))
-    return {
-        "similarity": round(similarity, 4),
-        "score": max(0, min(10, round(similarity * 10))),
-        "correct": similarity >= QUIZ_CORRECT_THRESHOLD,
-        "threshold": QUIZ_CORRECT_THRESHOLD,
-    }
+def compare_answers(expected_answer, student_answer, question="", context=""):
+    """
+    Grade a student answer. `context` is the source passage the question was
+    generated from; when present, grading is grounded in it (NLI cross-encoder
+    + embeddings, see backend.AnswerGrader), not just in the generated reference.
+    """
+    return grade_answer(
+        question=question,
+        reference_answer=expected_answer,
+        student_answer=student_answer,
+        context=context,
+    )
 
 
 def update_job(job_id, stage, **values):
@@ -281,6 +328,73 @@ def write_submissions(submissions):
         SUBMISSIONS_FILE.write_text(json.dumps(submissions, indent=2), encoding="utf-8")
 
 
+def normalize_email(email: str) -> str:
+    return (email or "").strip().lower()
+
+
+def read_students():
+    if not STUDENTS_FILE.exists():
+        return []
+    try:
+        return json.loads(STUDENTS_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        logger.exception("read_students: failed to read students file")
+        return []
+
+
+def write_students(students):
+    # Write-then-rename so a crash mid-write can't leave a half-written
+    # (corrupt) accounts file -- this file holds everyone's password hashes.
+    with STUDENTS_LOCK:
+        tmp_path = STUDENTS_FILE.with_suffix(".tmp")
+        tmp_path.write_text(json.dumps(students, indent=2), encoding="utf-8")
+        os.replace(tmp_path, STUDENTS_FILE)
+
+
+def find_student(email):
+    email = normalize_email(email)
+    return next((item for item in read_students() if item["email"] == email), None)
+
+
+def hash_password(password: str, salt: Optional[bytes] = None, iterations: int = PBKDF2_ITERATIONS):
+    salt = salt if salt is not None else secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, iterations)
+    return salt.hex(), digest.hex()
+
+
+def verify_password(password: str, salt_hex: str, hash_hex: str, iterations: int) -> bool:
+    _, digest = hash_password(password, bytes.fromhex(salt_hex), iterations)
+    return hmac.compare_digest(digest, hash_hex)
+
+
+def client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+def check_login_allowed(key: str) -> None:
+    now = time.time()
+    with FAILED_LOGINS_LOCK:
+        recent = [t for t in FAILED_LOGINS.get(key, []) if now - t < LOGIN_WINDOW_SECONDS]
+        FAILED_LOGINS[key] = recent
+        blocked = len(recent) >= MAX_FAILED_LOGINS
+    if blocked:
+        raise HTTPException(status_code=429, detail="Too many failed attempts. Please wait a few minutes and try again.")
+
+
+def record_failed_login(key: str) -> None:
+    now = time.time()
+    with FAILED_LOGINS_LOCK:
+        FAILED_LOGINS.setdefault(key, []).append(now)
+        if len(FAILED_LOGINS) > 5000:  # don't let junk keys accumulate forever
+            for stale_key in [k for k, v in FAILED_LOGINS.items() if not v or now - v[-1] >= LOGIN_WINDOW_SECONDS]:
+                del FAILED_LOGINS[stale_key]
+
+
+def clear_failed_logins(key: str) -> None:
+    with FAILED_LOGINS_LOCK:
+        FAILED_LOGINS.pop(key, None)
+
+
 @app.get("/login", response_class=HTMLResponse)
 def admin_login_page(request: Request):
     if current_admin(request):
@@ -292,10 +406,19 @@ def admin_login_page(request: Request):
 def admin_login(request: Request, payload: AdminLoginRequest):
     # compare_digest avoids leaking timing information about how much of
     # the password matched, which a plain == comparison would.
-    valid = payload.username == ADMIN_USERNAME and hmac.compare_digest(payload.password, ADMIN_PASSWORD)
-    if not valid:
+    limiter_key = f"admin:{client_ip(request)}:{payload.username.lower()}"
+    check_login_allowed(limiter_key)
+    # Encoded to bytes because hmac.compare_digest raises TypeError on
+    # non-ASCII str input (which would turn a password with an accent into
+    # a 500), and both fields are always compared so a wrong username isn't
+    # distinguishable from a wrong password by timing.
+    user_ok = hmac.compare_digest(payload.username.encode("utf-8"), ADMIN_USERNAME.encode("utf-8"))
+    pass_ok = hmac.compare_digest(payload.password.encode("utf-8"), ADMIN_PASSWORD.encode("utf-8"))
+    if not (user_ok and pass_ok):
+        record_failed_login(limiter_key)
         logger.info("admin_login: failed attempt for username=%r", payload.username)
         raise HTTPException(status_code=401, detail="Incorrect username or password.")
+    clear_failed_logins(limiter_key)
     request.session["is_admin"] = True
     request.session["admin_username"] = payload.username
     logger.info("admin_login: success username=%r", payload.username)
@@ -311,30 +434,196 @@ def admin_logout(request: Request):
 
 @app.get("/student-login", response_class=HTMLResponse)
 def student_login_page(request: Request):
-    if current_student_name(request):
+    if current_student(request):
         return RedirectResponse(url="/student")
     return FileResponse(Path(__file__).parent / "student-login.html", media_type="text/html")
 
 
+def start_student_session(request: Request, record: dict) -> dict:
+    request.session["student_email"] = record["email"]
+    request.session["student_name"] = record.get("name") or record["email"]
+    return {"email": record["email"], "name": record.get("name") or record["email"]}
+
+
+@app.post("/student-register")
+def student_register(request: Request, payload: StudentRegisterRequest):
+    """First-time password creation. Only works for an email an admin has
+    approved, and only once -- after that the account is "registered" and
+    this endpoint refuses it (use /student-login, or ask the admin to reset)."""
+    limiter_key = f"register:{client_ip(request)}"
+    check_login_allowed(limiter_key)
+
+    email = normalize_email(payload.email)
+    name = payload.name.strip()[:80]
+    if not MIN_PASSWORD_LENGTH <= len(payload.password) <= MAX_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Password must be between {MIN_PASSWORD_LENGTH} and {MAX_PASSWORD_LENGTH} characters.",
+        )
+
+    with STUDENTS_LOCK:
+        students = read_students()
+        record = next((item for item in students if item["email"] == email), None)
+        if not record or record.get("status") != "invited":
+            record_failed_login(limiter_key)
+            logger.info("student_register: rejected email=%r", email)
+            # Same message whether the email is unknown or already registered,
+            # so this endpoint can't be used to probe who is enrolled.
+            raise HTTPException(
+                status_code=403,
+                detail="This email hasn't been approved for access, or it already has an account. "
+                       "Try logging in, or ask your instructor.",
+            )
+        salt_hex, hash_hex = hash_password(payload.password)
+        record.update(
+            {
+                "status": "registered",
+                "name": name or record.get("name", ""),
+                "salt": salt_hex,
+                "password_hash": hash_hex,
+                "iterations": PBKDF2_ITERATIONS,
+                "registered_at": datetime.now().isoformat(timespec="seconds"),
+            }
+        )
+        write_students(students)
+
+    clear_failed_logins(limiter_key)
+    logger.info("student_register: registered email=%r", email)
+    return {"success": True, "student": start_student_session(request, record)}
+
+
 @app.post("/student-login")
 def student_login(request: Request, payload: StudentLoginRequest):
-    name = payload.student_name.strip()
-    if not name:
-        raise HTTPException(status_code=400, detail="Enter your name to continue.")
-    request.session["student_name"] = name
-    logger.info("student_login: name=%r", name)
-    return {"success": True, "student_name": name}
+    email = normalize_email(payload.email)
+    limiter_key = f"student:{client_ip(request)}:{email}"
+    check_login_allowed(limiter_key)
+
+    record = find_student(email)
+    if record and record.get("status") == "registered" and record.get("password_hash") \
+            and len(payload.password) <= MAX_PASSWORD_LENGTH:
+        ok = verify_password(payload.password, record["salt"], record["password_hash"],
+                             record.get("iterations", PBKDF2_ITERATIONS))
+    else:
+        # Burn the same CPU a real check would, so response time doesn't
+        # reveal whether an email is enrolled.
+        hash_password(payload.password[:MAX_PASSWORD_LENGTH], DUMMY_SALT)
+        ok = False
+
+    if not ok:
+        record_failed_login(limiter_key)
+        logger.info("student_login: failed email=%r", email)
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+
+    clear_failed_logins(limiter_key)
+    logger.info("student_login: success email=%r", email)
+    return {"success": True, "student": start_student_session(request, record)}
 
 
 @app.post("/student-logout")
 def student_logout(request: Request):
+    request.session.pop("student_email", None)
     request.session.pop("student_name", None)
     return {"success": True}
 
 
 @app.get("/me")
 def whoami(request: Request):
-    return {"is_admin": current_admin(request), "student_name": current_student_name(request)}
+    student = current_student(request)
+    return {
+        "is_admin": current_admin(request),
+        "student_name": student["name"] if student else None,
+        "student_email": student["email"] if student else None,
+    }
+
+
+@app.get("/students", response_class=HTMLResponse)
+def students_page(request: Request):
+    if not current_admin(request):
+        return RedirectResponse(url="/login?next=/students")
+    return FileResponse(Path(__file__).parent / "students.html", media_type="text/html")
+
+
+@app.get("/admin/students", dependencies=[Depends(require_admin_api)])
+def list_students():
+    students = sorted(read_students(), key=lambda item: item.get("invited_at", ""), reverse=True)
+    # Never send salts or hashes to the browser, even to the admin.
+    return {
+        "students": [
+            {
+                "email": item["email"],
+                "name": item.get("name", ""),
+                "status": item["status"],
+                "invited_at": item.get("invited_at"),
+                "registered_at": item.get("registered_at"),
+            }
+            for item in students
+        ]
+    }
+
+
+@app.post("/admin/students", dependencies=[Depends(require_admin_api)])
+def add_students(payload: AddStudentsRequest):
+    """Accepts a pasted blob of text (one per line, comma-separated, or
+    'Name <email>' style) and approves every address found in it."""
+    tokens = [t for t in re.split(r"[\s,;<>\"']+", payload.emails) if "@" in t]
+    if not tokens:
+        raise HTTPException(status_code=400, detail="No email addresses found. Enter one or more, separated by commas or new lines.")
+    if len(tokens) > MAX_EMAILS_PER_REQUEST:
+        raise HTTPException(status_code=400, detail=f"Add at most {MAX_EMAILS_PER_REQUEST} emails at a time.")
+
+    added, already_listed, invalid = [], [], []
+    with STUDENTS_LOCK:
+        students = read_students()
+        known = {item["email"] for item in students}
+        for token in tokens:
+            email = normalize_email(token)
+            if not EMAIL_FULL_RE.match(email):
+                invalid.append(token)
+            elif email in known:
+                if email not in already_listed:
+                    already_listed.append(email)
+            else:
+                students.append(
+                    {"email": email, "name": "", "status": "invited",
+                     "invited_at": datetime.now().isoformat(timespec="seconds")}
+                )
+                known.add(email)
+                added.append(email)
+        if added:
+            write_students(students)
+    logger.info("add_students: added=%d already=%d invalid=%d", len(added), len(already_listed), len(invalid))
+    return {"added": added, "already_listed": already_listed, "invalid": invalid}
+
+
+@app.delete("/admin/students/{email}", dependencies=[Depends(require_admin_api)])
+def remove_student(email: str):
+    email = normalize_email(email)
+    with STUDENTS_LOCK:
+        students = read_students()
+        remaining = [item for item in students if item["email"] != email]
+        if len(remaining) == len(students):
+            raise HTTPException(status_code=404, detail="Student not found.")
+        write_students(remaining)
+    logger.info("remove_student: email=%r", email)
+    return {"success": True}
+
+
+@app.post("/admin/students/{email}/reset", dependencies=[Depends(require_admin_api)])
+def reset_student_password(email: str):
+    """Forget the student's password and put the address back to 'invited',
+    so they can set a new one. Also immediately ends any session they have."""
+    email = normalize_email(email)
+    with STUDENTS_LOCK:
+        students = read_students()
+        record = next((item for item in students if item["email"] == email), None)
+        if not record:
+            raise HTTPException(status_code=404, detail="Student not found.")
+        for field in ("salt", "password_hash", "iterations", "registered_at"):
+            record.pop(field, None)
+        record["status"] = "invited"
+        write_students(students)
+    logger.info("reset_student_password: email=%r", email)
+    return {"success": True}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -355,7 +644,7 @@ def materials_page(request: Request):
 
 @app.get("/quiz", response_class=HTMLResponse)
 def quiz_page(request: Request):
-    if not current_student_name(request):
+    if not current_student(request):
         return RedirectResponse(url="/student-login?next=/quiz")
     logger.info("quiz_page: serving quiz page")
     return FileResponse(Path(__file__).parent / "quiz.html", media_type="text/html")
@@ -389,7 +678,7 @@ def review_page(request: Request):
 
 @app.get("/student", response_class=HTMLResponse)
 def student_page(request: Request):
-    if not current_student_name(request):
+    if not current_student(request):
         return RedirectResponse(url="/student-login?next=/student")
     logger.info("student_page: serving student mode page")
     return FileResponse(Path(__file__).parent / "student.html", media_type="text/html")
@@ -490,6 +779,7 @@ def create_exam(payload: CreateExamRequest):
                 "answer": item["answer"],
                 "difficulty": item.get("difficulty"),
                 "type": item.get("type"),
+                "context": item.get("context", ""),
                 "source": item.get("source", []),
             }
             for item in selected
@@ -580,7 +870,7 @@ def get_exam_student(exam_id: str):
 
 
 @app.post("/exams/{exam_id}/submit")
-def submit_exam(exam_id: str, payload: SubmitExamRequest, student_name: str = Depends(require_student_api)):
+def submit_exam(exam_id: str, payload: SubmitExamRequest, student: dict = Depends(require_student_api)):
     exam = find_exam(exam_id)
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found.")
@@ -599,7 +889,10 @@ def submit_exam(exam_id: str, payload: SubmitExamRequest, student_name: str = De
     for index, question in enumerate(questions):
         student_answer = answer_by_index.get(index, "")
         if student_answer:
-            evaluation = compare_answers(question["answer"], student_answer)
+            evaluation = compare_answers(
+                question["answer"], student_answer,
+                question=question["question"], context=question.get("context", ""),
+            )
         else:
             evaluation = {"similarity": 0.0, "score": 0, "correct": False, "threshold": QUIZ_CORRECT_THRESHOLD}
         results.append(
@@ -617,7 +910,8 @@ def submit_exam(exam_id: str, payload: SubmitExamRequest, student_name: str = De
         "id": uuid.uuid4().hex,
         "exam_id": exam_id,
         "exam_title": exam["title"],
-        "student_name": student_name,
+        "student_name": student["name"],
+        "student_email": student["email"],
         "submitted_at": datetime.now().isoformat(timespec="seconds"),
         "results": results,
         "total_score": total_score,
@@ -656,6 +950,7 @@ def list_submissions(exam_id: str):
             {
                 "id": item["id"],
                 "student_name": item["student_name"],
+                "student_email": item.get("student_email", ""),
                 "submitted_at": item["submitted_at"],
                 "total_score": item["total_score"],
                 "max_score": item["max_score"],
@@ -685,7 +980,11 @@ def evaluate_answer(payload: AnswerEvaluationRequest):
     if not payload.student_answer.strip():
         raise HTTPException(status_code=400, detail="Student answer cannot be empty.")
 
-    result = compare_answers(questions[payload.question_index]["answer"], payload.student_answer)
+    target = questions[payload.question_index]
+    result = compare_answers(
+        target["answer"], payload.student_answer,
+        question=target["question"], context=target.get("context", ""),
+    )
     return {
         "question_index": payload.question_index,
         "expected_answer": questions[payload.question_index]["answer"],
@@ -747,7 +1046,10 @@ async def evaluate_submission(
                 "question": question["question"],
                 "expected_answer": question["answer"],
                 "student_answer": item["answer"],
-                **compare_answers(question["answer"], item["answer"]),
+                **compare_answers(
+                    question["answer"], item["answer"],
+                    question=question["question"], context=question.get("context", ""),
+                ),
             })
         total_score = sum(item["score"] for item in results)
         return {
